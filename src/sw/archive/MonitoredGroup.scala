@@ -5,17 +5,17 @@ import org.joda.time.DateTime
 
 class MonitoredGroup
 {
-	def this(files: Path*)
-	{
-		this
-		includeAll(files.toArray)
-	}
-
 	var monitoredFiles: Array[Monitored] = Array()
 	//TODO: Backup location/handler
 	var scanInterval: Long = -1
 	var lastScan: DateTime = null
 	//TODO: Audit database (opt)
+
+	def this(files: Path*)
+	{
+		this
+		includeAll(files.toArray)
+	}
 
 	def include(path: Path, subfolders: Boolean = true) = if (!tracksFile(path)) monitoredFiles = monitoredFiles :+ new Monitored(path, subfolders)
 	def includeAll(paths: Array[Path], subfolders: Boolean = true) = paths.foreach(p => include(p, subfolders))
