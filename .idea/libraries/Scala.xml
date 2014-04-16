@@ -1,0 +1,17 @@
+<component name="libraryTable">
+  <library name="Scala">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/../../../Libraries/Scala/lib/akka-actors.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../Libraries/Scala/lib/scala-compiler.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../Libraries/Scala/lib/scala-library.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../Libraries/Scala/lib/scala-reflect.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES>
+      <root url="jar://$PROJECT_DIR$/../../../Libraries/Scala/src/akka-actors.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../Libraries/Scala/src/scala-compiler-src.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../Libraries/Scala/src/scala-library-src.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../Libraries/Scala/src/scala-reflect-src.jar!/" />
+    </SOURCES>
+  </library>
+</component>
