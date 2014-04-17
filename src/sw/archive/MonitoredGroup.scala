@@ -22,9 +22,7 @@ class MonitoredGroup
 
 	def tracksFile(p: Path): Boolean =
 	{
-		for (f <- monitoredFiles)
-			if (f.equals(p) || f.tracksFile(p))
-				return true
+		monitoredFiles.foreach(f => if (f.equals(p) || f.tracksFile(p)) return true)
 		false
 	}
 

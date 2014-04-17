@@ -14,9 +14,7 @@ class Monitored(p: Path, subfolders: Boolean = true)
 
 	def tracksFile(p: Path): Boolean =
 	{
-		for (f <- files)
-			if (f.equals(p) || f.tracksFile(p))
-				return true
+		files.foreach(f => if (f.equals(p) || f.tracksFile(p)) return true)
 		false
 	}
 
