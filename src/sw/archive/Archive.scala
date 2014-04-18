@@ -8,8 +8,8 @@ import javafx.scene.input.MouseEvent
 
 class Archive(p: Path = null) extends GridPane
 {
-	private val archiveTitle: StackPane = new StackPane
-	private def toggleLabelEdit =
+	val archiveTitle: StackPane = new StackPane
+	def toggleLabelEdit =
 	{
 		if (archiveTitleLabel.isVisible)
 			archiveTitleEdit.setText(archiveTitleLabel.getText)
@@ -18,15 +18,16 @@ class Archive(p: Path = null) extends GridPane
 		archiveTitleLabel.setVisible(!archiveTitleLabel.isVisible)
 		archiveTitleEdit.setVisible(!archiveTitleEdit.isVisible)
 	}
-	private val archiveTitleLabel: Label = new Label("New Archive")
+	val archiveTitleLabel: Label = new Label("New Archive")
 	archiveTitleLabel.setOnMouseClicked(new EventHandler[MouseEvent] {def handle(evt: MouseEvent) = toggleLabelEdit})
-	private val archiveTitleEdit: TextField = new TextField
+	val archiveTitleEdit: TextField = new TextField
 	archiveTitleEdit.setOnAction(new EventHandler[ActionEvent] {def handle(evt: ActionEvent) = toggleLabelEdit})
 	archiveTitleEdit.setVisible(false)
 	archiveTitle.getChildren.addAll(archiveTitleLabel, archiveTitleEdit)
-	private val archiveRoot: TextField = new TextField(if (p == null) "" else formatDir(p.toString))
-	archiveRoot.setPrefWidth(700)
 	add(archiveTitle, 0, 0)
+
+	val archiveRoot: TextField = new TextField(if (p == null) "" else formatDir(p.toString))
+	archiveRoot.setPrefWidth(700)
 	add(archiveRoot, 0, 1)
 
 	def setArchivePath(p: Path) =
