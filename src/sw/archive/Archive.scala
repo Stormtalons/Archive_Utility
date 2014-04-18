@@ -34,7 +34,7 @@ class Archive(p: Path = null) extends GridPane
 	{
 		if (!Files.exists(p))
 			Files.createDirectories(p)
-		archiveRoot.setText(formatDir(p.toString))
+		Main.fx(archiveRoot.setText(formatDir(p.toString)))
 	}
 	
 	def archive(from: Monitored)

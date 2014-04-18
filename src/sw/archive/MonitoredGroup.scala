@@ -35,9 +35,10 @@ class MonitoredGroup
 
 	def archive(file: String): Boolean =
 	{
+		if (archive == null) return false
 		val toArchive = getMonitoredFile(Paths.get(file))
-		if (archive != null && toArchive != null)
-			archive.archive(toArchive)
+		if (toArchive == null) return false
+		archive.archive(toArchive)
 		true
 	}
 

@@ -1,7 +1,7 @@
 package sw.archive
 
 import java.nio.file.Paths
-import javafx.application.Application
+import javafx.application.{Platform, Application}
 import javafx.stage.Stage
 import javafx.scene.control.{Button, ListView, Tab, TabPane}
 import javafx.scene.layout.{Priority, HBox}
@@ -13,16 +13,17 @@ class Main extends Application
 {
 	def launch = javafx.application.Application.launch()
 
-	var archives: ArchiveManager = null
-	var temp: MonitoredGroup = null
-	val sb = new StringBuilder
-
 	var mainPanel: TabPane = null
+
 	var monitoredTab: Tab = null
 	var hb: HBox = null
 	var list: ListView[String] = null
 	var b: Button = null
+	var temp: MonitoredGroup = null
+	val sb = new StringBuilder
+
 	var archiveTab: Tab = null
+	var archives: ArchiveManager = null
 
 	def start(stg: Stage) =
 	{
@@ -62,4 +63,6 @@ class Main extends Application
 		mainPanel = new TabPane
 		mainPanel.getTabs.addAll(monitoredTab, archiveTab)
 	}
+
+	def fx(code: Unit) = Platform.runLater(new Runnable{def run = code})
 }
