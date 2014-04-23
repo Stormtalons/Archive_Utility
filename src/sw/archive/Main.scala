@@ -1,14 +1,17 @@
 package sw.archive
 
-import java.nio.file.Paths
 import javafx.application.{Platform, Application}
 import javafx.stage.Stage
-import javafx.scene.control.{Button, ListView, Tab, TabPane}
-import javafx.scene.layout.{Priority, HBox}
-import javafx.event.{ActionEvent, EventHandler}
+import javafx.scene.control.{Button, ScrollPane, Tab, TabPane}
+import javafx.scene.layout.{HBox, VBox}
 import javafx.scene.Scene
+import javafx.event.{ActionEvent, EventHandler}
 
-object Main extends App {new Main().launch}
+object Main extends App
+{
+	new Main().launch
+	def fx(code: Unit) = Platform.runLater(new Runnable{def run = code})
+}
 class Main extends Application
 {
 	def launch = javafx.application.Application.launch()
@@ -16,53 +19,31 @@ class Main extends Application
 	var mainPanel: TabPane = null
 
 	var monitoredTab: Tab = null
-	var hb: HBox = null
-	var list: ListView[String] = null
-	var b: Button = null
-	var temp: MonitoredGroup = null
-	val sb = new StringBuilder
+	var scrollPane: ScrollPane = null
+	var monitoredGroups: VBox = null
+	var addGroup: Button = null
 
 	var archiveTab: Tab = null
 	var archives: ArchiveManager = null
 
 	def start(stg: Stage) =
 	{
-		initData
-		initUI
-		stg.setScene(new Scene(mainPanel, 1200, 1000))
-		stg.show
-	}
-
-	def initData =
-	{
-		archives = new ArchiveManager
-
-		temp = new MonitoredGroup
-		temp.include(Paths.get("K:/Temp/Inspector Gadget 1 & 2 [DVDRip]"))
-		temp.archive = archives.createArchive(Paths.get("D:/Code/Java/IntelliJ/Archive Utility/TestArchiveLocation/"))
-		temp.displayAll(sb)
-	}
-
-	def initUI =
-	{
 		monitoredTab = new Tab("Monitored Files")
-		list = new ListView[String]
-		HBox.setHgrow(list, Priority.ALWAYS)
-		for (s <- sb.toString.split("\n"))
-			list.getItems.add(s)
-		b = new Button("Go")
-		b.setOnAction(new EventHandler[ActionEvent]{def handle(evt: ActionEvent) = if (list.getSelectionModel.getSelectedItem != null) temp.archive(list.getSelectionModel.getSelectedItem)})
-		b.setStyle("-fx-font-size: 30pt")
-		hb = new HBox
-		hb.getChildren.addAll(list, b)
-		monitoredTab.setContent(hb)
+		scrollPane = new ScrollPane
+		monitoredGroups = new VBox
+		addGroup = new Button("+")
+		addGroup.setOnAction(new EventHandler[ActionEvent]{def handle(evt: ActionEvent) = monitoredGroups.getChildren.add(new MonitoredGroup("New Group"))})
+		monitoredGroups.getChildren.add(addGroup)
+		scrollPane.setContent(monitoredGroups)
+		monitoredTab.setContent(scrollPane)
 
 		archiveTab = new Tab("Archive Settings")
+		archives = new ArchiveManager
 		archiveTab.setContent(archives)
 
 		mainPanel = new TabPane
 		mainPanel.getTabs.addAll(monitoredTab, archiveTab)
+		stg.setScene(new Scene(mainPanel, 1200, 1000))
+		stg.show
 	}
-
-	def fx(code: Unit) = Platform.runLater(new Runnable{def run = code})
 }

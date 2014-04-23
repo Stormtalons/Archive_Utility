@@ -2,18 +2,31 @@ package sw.archive
 
 import java.nio.file.{Paths, Path}
 import org.joda.time.DateTime
+import javafx.scene.layout.GridPane
+import javafx.scene.control.{TreeView, Label}
+import javafx.geometry.Insets
 
-class MonitoredGroup
+class MonitoredGroup(n: String) extends GridPane
 {
+	setPadding(new Insets(10))
+	getStylesheets.add("sw/archive/dft.css")
+	var name: Setting = new Setting("Name", n)
+	add(name, 0, 0)
 	var monitoredFiles: Array[Monitored] = Array()
+	var filesLabel: Label = new Label("Monitored Folders:")
+	add(filesLabel, 0, 1)
+	var filesTree: TreeView[String] = new TreeView
+	filesTree.setStyle("-fx-border-width: 1px; -fx-border-style: solid")
+	add(filesTree, 0, 2)
 	var archive: Archive = null
 	var scanInterval: Long = -1
 	var lastScan: DateTime = null
 	//TODO: Audit database (opt)
+	setStyle("-fx-border-width: 1px; -fx-border-style: solid")
 
-	def this(files: Path*) =
+	def this(n: String, files: Path*) =
 	{
-		this
+		this(n)
 		includeAll(files.toArray)
 	}
 
