@@ -15,7 +15,7 @@ object Setting
 	val FIELD_ONLY = 2
 }
 
-class Setting(st: Int, extra: Node*) extends HBox
+class Setting(st: Int, extras: Array[_ <: Node]) extends HBox
 {
 	var settingType: Int = st
 
@@ -41,18 +41,19 @@ class Setting(st: Int, extra: Node*) extends HBox
 
 	setAlignment(Pos.CENTER_LEFT)
 	getChildren.addAll(label, value)
-	for (n <- extra)
-		getChildren.add(n)
+	if (extras != null)
+		for (n <- extras)
+			getChildren.add(n)
 
-	def this(st: Int, n: String, extra: Node*) =
+	def this(st: Int, n: String, extras: Array[_ <: Node]) =
 	{
-		this(st, extra)
+		this(st, extras)
 		label.setText(n + ":")
 	}
 
-	def this(st: Int, n: String, iv: String, extra: Node*) =
+	def this(st: Int, n: String, iv: String, extras: Array[_ <: Node]) =
 	{
-		this(st, n, extra)
+		this(st, n, extras)
 		setValue(iv)
 	}
 

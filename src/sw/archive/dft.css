@@ -1,5 +1,10 @@
-{
+.group {
     -fx-font-size: 16pt;
     -fx-font-family: Consolas;
     -fx-font-weight: normal;
+}
+.archive:hover {
+    -fx-border-color: blue;
+    -fx-border-width: 2px;
+    -fx-border-style: solid;
 }
