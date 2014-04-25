@@ -6,6 +6,7 @@ import javafx.scene.input.{MouseButton, MouseEvent}
 import javafx.event.{ActionEvent, EventHandler}
 import javafx.geometry.{Insets, Pos}
 import javafx.beans.value.{ObservableValue, ChangeListener}
+import javafx.scene.Node
 
 object Setting
 {
@@ -14,9 +15,9 @@ object Setting
 	val FIELD_ONLY = 2
 }
 
-class Setting(st: Int = Setting.LABEL_AND_FIELD) extends HBox
+class Setting(st: Int, extra: Node*) extends HBox
 {
-	val settingType: Int = st
+	var settingType: Int = st
 
 	val label: Label = new Label
 	val value: StackPane = new StackPane
@@ -40,35 +41,43 @@ class Setting(st: Int = Setting.LABEL_AND_FIELD) extends HBox
 
 	setAlignment(Pos.CENTER_LEFT)
 	getChildren.addAll(label, value)
-	
-	def this(n: String, st: Int = Setting.LABEL_AND_FIELD) =
+	for (n <- extra)
+		getChildren.add(n)
+
+	def this(st: Int, n: String, extra: Node*) =
 	{
-		this(st)
+		this(st, extra)
 		label.setText(n + ":")
 	}
 
-	def this(n: String, iv: String, st: Int = Setting.LABEL_AND_FIELD) =
+	def this(st: Int, n: String, iv: String, extra: Node*) =
 	{
-		this(n, st)
+		this(st, n, extra)
 		setValue(iv)
 	}
 
 	def toggleEdit =
 	{
-		val (vis, invis) = if (valueLabel.isVisible) (valueLabel, valueField) else (valueField, valueLabel)
-		if (invis.getClass.equals(classOf[Label]))
-			invis.asInstanceOf[Label].setText(vis.asInstanceOf[TextField].getText)
-		else
-			invis.asInstanceOf[TextField].setText(vis.asInstanceOf[Label].getText)
-		vis.setVisible(false)
-		invis.setVisible(true)
-		invis.requestFocus
+		Main.fx(
+		{
+			val (vis, invis) = if (valueLabel.isVisible) (valueLabel, valueField) else (valueField, valueLabel)
+			if (invis.getClass.equals(classOf[Label]))
+				invis.asInstanceOf[Label].setText(vis.asInstanceOf[TextField].getText)
+			else
+				invis.asInstanceOf[TextField].setText(vis.asInstanceOf[Label].getText)
+			vis.setVisible(false)
+			invis.setVisible(true)
+			invis.requestFocus
+		})
 	}
 	
 	def setValue(s: String) =
 	{
-		valueLabel.setText(s)
-		valueField.setText(s)
+		Main.fx(
+		{
+			valueLabel.setText(s)
+			valueField.setText(s)
+		})
 	}
 	
 	def getValue: String = if (settingType == Setting.FIELD_ONLY) valueField.getText else valueLabel.getText

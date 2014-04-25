@@ -10,6 +10,7 @@ import javafx.event.{ActionEvent, EventHandler}
 object Main extends App
 {
 	new Main().launch
+	def run(code: Unit) = new Thread(new Runnable {def run = code}).start
 	def fx(code: Unit) = Platform.runLater(new Runnable{def run = code})
 }
 class Main extends Application
@@ -25,6 +26,7 @@ class Main extends Application
 
 	var archiveTab: Tab = null
 	var archives: ArchiveManager = null
+	implicit val archiveChooser: String = "test"
 
 	def start(stg: Stage) =
 	{
@@ -32,7 +34,7 @@ class Main extends Application
 		scrollPane = new ScrollPane
 		monitoredGroups = new VBox
 		addGroup = new Button("+")
-		addGroup.setOnAction(new EventHandler[ActionEvent]{def handle(evt: ActionEvent) = monitoredGroups.getChildren.add(new MonitoredGroup("New Group"))})
+		addGroup.setOnAction(new EventHandler[ActionEvent]{def handle(evt: ActionEvent) = monitoredGroups.getChildren.add(new MonitoredGroup)})
 		monitoredGroups.getChildren.add(addGroup)
 		scrollPane.setContent(monitoredGroups)
 		monitoredTab.setContent(scrollPane)

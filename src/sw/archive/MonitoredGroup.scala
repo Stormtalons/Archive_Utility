@@ -2,33 +2,47 @@ package sw.archive
 
 import java.nio.file.{Paths, Path}
 import org.joda.time.DateTime
-import javafx.scene.layout.GridPane
-import javafx.scene.control.{TreeView, Label}
+import javafx.scene.layout.{VBox, GridPane}
+import javafx.scene.control.{Button, TreeView, Label}
 import javafx.geometry.Insets
+import javafx.event.{EventHandler, ActionEvent}
 
-class MonitoredGroup(n: String) extends GridPane
+class MonitoredGroup(implicit val archiveChoose: String) extends VBox
 {
+	println(archiveChoose)
 	setPadding(new Insets(10))
+	setSpacing(10)
 	getStylesheets.add("sw/archive/dft.css")
-	var name: Setting = new Setting("Name", n)
-	add(name, 0, 0)
+	var name: Setting = new Setting(Setting.LABEL_AND_FIELD, "Name", "New Group")
+	getChildren.add(name)
+	var scanInterval: Setting = new Setting(Setting.LABEL_AND_FIELD, "Scan interval")
+	getChildren.add(scanInterval)
+	val archiveChooser: Button = new Button("Choose")
+	archiveChooser.setOnAction(new EventHandler[ActionEvent]
+	{
+		def handle(evt: ActionEvent) =
+		{
+
+		}
+	})
+	var archive2: Setting = new Setting(Setting.LABEL_AND_FIELD, "Archive", archiveChooser)
 	var monitoredFiles: Array[Monitored] = Array()
 	var filesLabel: Label = new Label("Monitored Folders:")
-	add(filesLabel, 0, 1)
+	getChildren.add(filesLabel)
 	var filesTree: TreeView[String] = new TreeView
 	filesTree.setStyle("-fx-border-width: 1px; -fx-border-style: solid")
-	add(filesTree, 0, 2)
+	getChildren.add(filesTree)
 	var archive: Archive = null
-	var scanInterval: Long = -1
 	var lastScan: DateTime = null
 	//TODO: Audit database (opt)
 	setStyle("-fx-border-width: 1px; -fx-border-style: solid")
 
-	def this(n: String, files: Path*) =
-	{
-		this(n)
-		includeAll(files.toArray)
-	}
+//	def this(n: String, files: Path*) =
+//	{
+//		this
+//		name.setValue(n)
+//		includeAll(files.toArray)
+//	}
 
 	def include(path: Path, subfolders: Boolean = true) = if (getMonitoredFile(path) == null) monitoredFiles = monitoredFiles :+ new Monitored(path, path.getFileName.toString + "/", subfolders)
 	def includeAll(paths: Array[Path], subfolders: Boolean = true) = paths.foreach(p => include(p, subfolders))

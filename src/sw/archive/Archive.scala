@@ -24,11 +24,11 @@ class Archive(p: Path = null) extends GridPane
 //	archiveTitleEdit.setOnAction(new EventHandler[ActionEvent] {def handle(evt: ActionEvent) = toggleLabelEdit})
 //	archiveTitleEdit.setVisible(false)
 //	archiveTitle.getChildren.addAll(archiveTitleLabel, archiveTitleEdit)
-	val archiveTitle: Setting = new Setting("Name", "New Archive")
+	val archiveTitle: Setting = new Setting(Setting.LABEL_AND_FIELD, "Name", "New Archive")
 	add(archiveTitle, 0, 0)
 
 //	val archiveRoot: TextField = new TextField(if (p == null) "" else formatDir(p.toString))
-	val archiveRoot: Setting = new Setting("Path")
+	val archiveRoot: Setting = new Setting(Setting.LABEL_AND_FIELD, "Path")
 	archiveRoot.setPrefWidth(700)
 	add(archiveRoot, 0, 1)
 
