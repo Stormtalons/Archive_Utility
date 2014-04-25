@@ -4,9 +4,13 @@ import java.nio.file.Path
 import javafx.scene.layout.VBox
 import javafx.event.{EventHandler, ActionEvent}
 import javafx.scene.input.MouseEvent
+import javafx.geometry.Insets
 
 class ArchiveManager extends VBox
 {
+	setPadding(new Insets(10))
+	setSpacing(10)
+
 	def createArchive(p: Path, n: String = "New Archive"): Archive =
 	{
 		for (i <- 0 to getChildren.size - 1)
@@ -18,10 +22,10 @@ class ArchiveManager extends VBox
 		toAdd
 	}
 
-	def choose(doWith: (String) => Unit) =
+	def choose(doWith: (Archive) => Unit, checkStatus: => Boolean) =
 	{
 		var loop = true
-		var result: String = ""
+		var result: Archive = null
 		for (a <- 0 to getChildren.size - 1)
 		{
 			val archive: Archive = getChildren.get(a).asInstanceOf[Archive]
@@ -29,24 +33,25 @@ class ArchiveManager extends VBox
 			{
 				def handle(evt: MouseEvent) =
 				{
-					result = archive.archiveTitle.getValue
+					result = archive
 					loop = false
 				}
 			})
-			archive.getStylesheets.add("sw/archive/dft.css")
+			archive.getStyleClass.add("archiveHover")
 		}
 		Main.run(
 		{
-			while (loop)
+			while (loop && checkStatus)
 				Thread.sleep(10)
 			Main.fx(
 			for (a <- 0 to getChildren.size - 1)
 			{
 				val archive: Archive = getChildren.get(a).asInstanceOf[Archive]
 				archive.setOnMouseClicked(null)
-				archive.getStylesheets.remove("sw/archive/dft.css")
+				archive.getStyleClass.removeAll("archiveHover")
 			})
-			doWith(result)
+			if (result != null)
+				doWith(result)
 		})
 	}
 }

@@ -42,11 +42,11 @@ class Main extends Application
 					(group: MonitoredGroup) =>
 					{
 						mainPanel.getSelectionModel.select(archiveTab)
-						archives.choose((result: String) =>
+						archives.choose((result: Archive) =>
 						{
-							group.archive2.setValue(result)
+							group.setArchive(result)
 							Main.fx(mainPanel.getSelectionModel.select(monitoredTab))
-						})
+						},mainPanel.getSelectionModel.isSelected(1))
 					}
 				))
 			}

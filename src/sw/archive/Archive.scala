@@ -5,16 +5,23 @@ import javafx.scene.layout.{StackPane, GridPane}
 import javafx.scene.control.{Label, TextField}
 import javafx.event.{ActionEvent, EventHandler}
 import javafx.scene.input.MouseEvent
+import javafx.geometry.Insets
 
 class Archive(p: Path = null)(implicit n: String = "New Archive") extends GridPane
 {
+	setPadding(new Insets(10))
+	setHgap(10)
+	setVgap(10)
 	getStyleClass.add("archive")
+	getStylesheets.add("sw/archive/dft.css")
 	val archiveTitle: Setting = new Setting(Setting.LABEL_AND_FIELD, "Name", n, null)
 	add(archiveTitle, 0, 0)
 
-	val archiveRoot: Setting = new Setting(Setting.LABEL_AND_FIELD, "Path", if (p == null) "" else p.toString, null)
+	val archiveRoot: Setting = new Setting(Setting.LABEL_AND_FIELD, "Path", if (p == null) "" else formatDir(p.toString), null)
 	archiveRoot.setPrefWidth(700)
 	add(archiveRoot, 0, 1)
+
+	def getName: String = archiveTitle.getValue
 
 	def setArchivePath(p: Path) =
 	{

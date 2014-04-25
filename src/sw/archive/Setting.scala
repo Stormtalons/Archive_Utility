@@ -39,6 +39,7 @@ class Setting(st: Int, extras: Array[_ <: Node]) extends HBox
 	if (settingType != Setting.LABEL_ONLY)
 		value.getChildren.add(valueField)
 
+	setSpacing(10)
 	setAlignment(Pos.CENTER_LEFT)
 	getChildren.addAll(label, value)
 	if (extras != null)

@@ -3,9 +3,11 @@ package sw.archive
 import java.nio.file.{Paths, Path}
 import org.joda.time.DateTime
 import javafx.scene.layout.VBox
-import javafx.scene.control.{Button, TreeView, Label}
+import javafx.scene.control.{TreeItem, Button, TreeView, Label}
 import javafx.geometry.Insets
 import javafx.event.{EventHandler, ActionEvent}
+import javafx.scene.input.{TransferMode, DataFormat, DragEvent}
+import java.io.File
 
 class MonitoredGroup(ac: (MonitoredGroup) => Unit = null) extends VBox
 {
@@ -18,20 +20,55 @@ class MonitoredGroup(ac: (MonitoredGroup) => Unit = null) extends VBox
 	getChildren.add(scanInterval)
 	val archiveChooser: Button = new Button("Choose")
 	archiveChooser.setOnAction(new EventHandler[ActionEvent]{def handle(evt: ActionEvent) = ac(MonitoredGroup.this)})
-	var archive2: Setting = new Setting(Setting.LABEL_AND_FIELD, "Archive", Array[Button](archiveChooser))
-	getChildren.add(archive2)
+	val archiveNow: Button = new Button("Archive Now")
+	archiveNow.setOnAction(new EventHandler[ActionEvent]{def handle(evt: ActionEvent) = archiveAll})
+	var archiveName: Setting = new Setting(Setting.LABEL_AND_FIELD, "Archive", Array[Button](archiveChooser, archiveNow))
+	getChildren.add(archiveName)
 	var monitoredFiles: Array[Monitored] = Array()
 	var filesLabel: Label = new Label("Monitored Folders:")
 	getChildren.add(filesLabel)
-	var filesTree: TreeView[String] = new TreeView
+	var filesTree: TreeView[String] = new TreeView(new TreeItem[String])
 	filesTree.setStyle("-fx-border-width: 1px; -fx-border-style: solid")
 	getChildren.add(filesTree)
+	var disp = new Button("disp")
+	disp.setOnAction(new EventHandler[ActionEvent]{def handle(evt: ActionEvent) = displayAll(s => println(s))})
+	getChildren.add(disp)
 	var archive: Archive = null
 	var lastScan: DateTime = null
 	//TODO: Audit database (opt)
 	setStyle("-fx-border-width: 1px; -fx-border-style: solid")
 
-	def include(path: Path, subfolders: Boolean = true) = if (getMonitoredFile(path) == null) monitoredFiles = monitoredFiles :+ new Monitored(path, path.getFileName.toString + "/", subfolders)
+	setOnDragOver(new EventHandler[DragEvent]{def handle(evt: DragEvent) = if (evt.getDragboard.hasContent(DataFormat.FILES)) evt.acceptTransferModes(TransferMode.COPY)})
+	setOnDragDropped(new EventHandler[DragEvent]
+	{
+		def handle(evt: DragEvent) =
+		{
+			val files = evt.getDragboard.getContent(DataFormat.FILES).asInstanceOf[java.util.List[File]]
+			for (i <- 0 to files.size - 1)
+				include(Paths.get(files.get(i).getPath))
+		}
+	})
+
+	def include(path: Path, subfolders: Boolean = true) =
+	{
+		if (getMonitoredFile(path) == null)
+			monitoredFiles = monitoredFiles :+ new Monitored(path, path.getFileName.toString + "/", subfolders)
+		Main.fx(filesTree.getRoot.getChildren.clear)
+		def refreshTree(node: Monitored): Unit =
+		{
+			Main.fx(node.getChildren.clear)
+			node.files.foreach(file =>
+			{
+				Main.fx(node.getChildren.add(file))
+				refreshTree(file)
+			})
+		}
+		monitoredFiles.foreach(file =>
+		{
+			Main.fx(filesTree.getRoot.getChildren.add(file))
+			refreshTree(file)
+		})
+	}
 	def includeAll(paths: Array[Path], subfolders: Boolean = true) = paths.foreach(p => include(p, subfolders))
 
 	def getMonitoredFile(p: Path): Monitored =
@@ -47,14 +84,15 @@ class MonitoredGroup(ac: (MonitoredGroup) => Unit = null) extends VBox
 		null
 	}
 
-	def archive(file: String): Boolean =
+	def setArchive(a: Archive) =
 	{
-		if (archive == null) return false
-		val toArchive = getMonitoredFile(Paths.get(file))
-		if (toArchive == null) return false
-		archive.archive(toArchive)
-		true
+		archive = a
+		archiveName.setValue(archive.getName)
 	}
 
-	def displayAll(sb: StringBuilder) = monitoredFiles.foreach(f => f.disp(sb))
+	def archiveAll =
+		if (archive != null)
+			monitoredFiles.foreach(file => file.scan((file: Monitored) => archive.archive(file)))
+
+	def displayAll(doWith: (String) => Unit) = monitoredFiles.foreach(f => f.disp(doWith))
 }

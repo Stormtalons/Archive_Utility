@@ -3,7 +3,12 @@
     -fx-font-family: Consolas;
     -fx-font-weight: normal;
 }
-.archive:hover {
+.archive {
+    -fx-border-color: black;
+    -fx-border-width: 1;
+    -fx-border-style: solid;
+}
+.archiveHover:hover {
     -fx-border-color: blue;
     -fx-border-width: 2px;
     -fx-border-style: solid;
