@@ -2,53 +2,57 @@ package sw.archive
 
 import java.nio.file.Path
 import javafx.scene.layout.VBox
-import javafx.event.{EventHandler, ActionEvent}
+import javafx.event.EventHandler
 import javafx.scene.input.MouseEvent
 import javafx.geometry.Insets
+import scala.util.Random
+import javafx.application.Platform
 
 class ArchiveManager extends VBox
 {
 	setPadding(new Insets(10))
 	setSpacing(10)
 
-	def createArchive(p: Path, n: String = "New Archive"): Archive =
+	def count: Int = getChildren.size
+
+	def foreach(code: Archive => Unit) = for (i <- 0 to count - 1) code(get(i))
+
+	def add(a: Archive) = Main.fx(getChildren.add(a))
+	def createArchive(p: Path, n: String = "New Archive") = add(new Archive(p, n))
+	def get(i: Int): Archive = if (i < count) getChildren.get(i).asInstanceOf[Archive] else null
+	def get(n: String): Archive =
 	{
-		for (i <- 0 to getChildren.size - 1)
-			if (getChildren.get(i).asInstanceOf[Archive].refersTo(p))
-				return getChildren.get(i).asInstanceOf[Archive]
-		implicit val name = n
-		val toAdd = new Archive(p)
-		Main.fx(getChildren.add(toAdd))
-		toAdd
+		foreach((a: Archive) => if (a.toString.equals(n)) return a)
+		null
 	}
 
 	def choose(doWith: (Archive) => Unit, checkStatus: => Boolean) =
 	{
 		var loop = true
 		var result: Archive = null
-		for (a <- 0 to getChildren.size - 1)
+		foreach((a: Archive) =>
 		{
-			val archive: Archive = getChildren.get(a).asInstanceOf[Archive]
-			archive.setOnMouseClicked(new EventHandler[MouseEvent]
+			a.setOnMouseClicked(new EventHandler[MouseEvent]
 			{
 				def handle(evt: MouseEvent) =
 				{
-					result = archive
+					result = a
 					loop = false
 				}
 			})
-			archive.getStyleClass.add("archiveHover")
-		}
+			a.getStyleClass.add("archiveHover")
+		})
 		Main.run(
 		{
 			while (loop && checkStatus)
 				Thread.sleep(10)
-			Main.fx(
-			for (a <- 0 to getChildren.size - 1)
+			foreach((a: Archive) =>
 			{
-				val archive: Archive = getChildren.get(a).asInstanceOf[Archive]
-				archive.setOnMouseClicked(null)
-				archive.getStyleClass.removeAll("archiveHover")
+				Main.fx(
+				{
+					a.setOnMouseClicked(null)
+					a.getStyleClass.removeAll("archiveHover")
+				})
 			})
 			if (result != null)
 				doWith(result)

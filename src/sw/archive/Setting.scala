@@ -1,86 +1,92 @@
 package sw.archive
 
-import javafx.scene.layout.{StackPane, HBox}
+import javafx.scene.layout.{Priority, StackPane, HBox}
 import javafx.scene.control.{TextField, Label}
 import javafx.scene.input.{MouseButton, MouseEvent}
 import javafx.event.{ActionEvent, EventHandler}
 import javafx.geometry.{Insets, Pos}
 import javafx.beans.value.{ObservableValue, ChangeListener}
 import javafx.scene.Node
+import java.text.SimpleDateFormat
 
 object Setting
 {
 	val LABEL_AND_FIELD = 0
 	val LABEL_ONLY = 1
 	val FIELD_ONLY = 2
+
+	object DataType
+	{
+		val NORMAL = 0
+		val DATETIME = 1
+	}
 }
 
-class Setting(st: Int, extras: Array[_ <: Node]) extends HBox
+class Setting[Any](display: Int, data: Int, name: String, initialVal: Any) extends HBox
 {
-	var settingType: Int = st
+	var displayType: Int = display
+	var dataType: Int = data
+	var value: Any = initialVal
 
-	val label: Label = new Label
-	val value: StackPane = new StackPane
-	value.setStyle("-fx-border-width: 1px; -fx-border-color: gray; -fx-border-style: solid")
-	val valueLabel: Label = new Label
+	val label: Label = new Label(name)
+	val valuePane: StackPane = new StackPane
+	valuePane.setStyle("-fx-border-width: 1px; -fx-border-color: gray; -fx-border-style: solid")
+	HBox.setHgrow(valuePane, Priority.ALWAYS)
+	val valueLabel: Label = new Label(if (initialVal == null) "" else initialVal.toString)
 	StackPane.setAlignment(valueLabel, Pos.CENTER_LEFT)
 	valueLabel.setPadding(new Insets(0, 0, 0, 10))
 	val valueField: TextField = new TextField
-	
-	if (settingType == Setting.LABEL_AND_FIELD)
+	valueField.setText(if (initialVal == null) "" else initialVal.toString)
+
+	def this(display: Int, name: String) = this(display, Setting.DataType.NORMAL, name, null.asInstanceOf[Any])
+	def this(display: Int, name: String, initialVal: Any) = this(display, Setting.DataType.NORMAL, name, initialVal)
+	def this(display: Int, data: Int, name: String) = this(display, data, name, null.asInstanceOf[Any])
+
+	if (displayType == Setting.FIELD_ONLY)
+		valueLabel.setVisible(false)
+	else
+		valueField.setVisible(false)
+
+	if (displayType == Setting.LABEL_AND_FIELD)
 	{
-		value.setOnMouseClicked(new EventHandler[MouseEvent]{def handle(evt: MouseEvent) = if (evt.getButton == MouseButton.PRIMARY && !valueField.isVisible) toggleEdit})
+		valuePane.setOnMouseClicked(new EventHandler[MouseEvent]{def handle(evt: MouseEvent) = if (evt.getButton == MouseButton.PRIMARY && !valueField.isVisible) toggleEdit})
 		valueField.setOnAction(new EventHandler[ActionEvent]{def handle(evt: ActionEvent) = toggleEdit})
 		valueField.focusedProperty.addListener(new ChangeListener[java.lang.Boolean]{def changed(prop: ObservableValue[_ <: java.lang.Boolean], oldVal: java.lang.Boolean, newVal: java.lang.Boolean) = if (!newVal && valueField.isVisible) toggleEdit})
-		valueField.setVisible(false)
 	}
-	if (settingType != Setting.FIELD_ONLY)
-		value.getChildren.add(valueLabel)
-	if (settingType != Setting.LABEL_ONLY)
-		value.getChildren.add(valueField)
+	valuePane.getChildren.addAll(valueLabel, valueField)
 
 	setSpacing(10)
 	setAlignment(Pos.CENTER_LEFT)
-	getChildren.addAll(label, value)
-	if (extras != null)
-		for (n <- extras)
-			getChildren.add(n)
+	getChildren.addAll(label, valuePane)
 
-	def this(st: Int, n: String, extras: Array[_ <: Node]) =
-	{
-		this(st, extras)
-		label.setText(n + ":")
-	}
-
-	def this(st: Int, n: String, iv: String, extras: Array[_ <: Node]) =
-	{
-		this(st, n, extras)
-		setValue(iv)
-	}
+	def addExtras(extras: Array[_ <: Node]) = if (extras != null) for (n <- extras) getChildren.add(n)
 
 	def toggleEdit =
-	{
 		Main.fx(
 		{
-			val (vis, invis) = if (valueLabel.isVisible) (valueLabel, valueField) else (valueField, valueLabel)
-			if (invis.getClass.equals(classOf[Label]))
-				invis.asInstanceOf[Label].setText(vis.asInstanceOf[TextField].getText)
+			if (valueLabel.isVisible)
+			{
+				valueLabel.setVisible(false)
+				valueField.setVisible(true)
+				valueField.requestFocus
+			}
 			else
-				invis.asInstanceOf[TextField].setText(vis.asInstanceOf[Label].getText)
-			vis.setVisible(false)
-			invis.setVisible(true)
-			invis.requestFocus
+			{
+				set((if (value.isInstanceOf[Long]) java.lang.Long.parseLong(valueField.getText) else valueField.getText).asInstanceOf[Any])
+				valueField.setVisible(false)
+				valueLabel.setVisible(true)
+			}
 		})
-	}
-	
-	def setValue(s: String) =
+
+	def get: Any = value
+	def set(v: Any) =
 	{
+		value = v
 		Main.fx(
 		{
-			valueLabel.setText(s)
-			valueField.setText(s)
+			val toSet = if (dataType == Setting.DataType.DATETIME) new SimpleDateFormat("yyyy/MM/dd HH:mm:ss").format(value) else if (value != null) value.toString else ""
+			valueLabel.setText(toSet)
+			valueField.setText(toSet)
 		})
 	}
-	
-	def getValue: String = if (settingType == Setting.FIELD_ONLY) valueField.getText else valueLabel.getText
 }

@@ -1,41 +1,44 @@
 package sw.archive
 
 import java.nio.file._
-import javafx.scene.layout.{StackPane, GridPane}
-import javafx.scene.control.{Label, TextField}
-import javafx.event.{ActionEvent, EventHandler}
-import javafx.scene.input.MouseEvent
+import javafx.scene.layout.GridPane
 import javafx.geometry.Insets
 
-class Archive(p: Path = null)(implicit n: String = "New Archive") extends GridPane
+object Archive
+{
+	def fromXML(l: XMLLine): Archive = new Archive(Paths.get(l.getAttr("path")), l.getAttr("name"))
+}
+
+class Archive(p: Path, n: String) extends GridPane
 {
 	setPadding(new Insets(10))
 	setHgap(10)
 	setVgap(10)
 	getStyleClass.add("archive")
 	getStylesheets.add("sw/archive/dft.css")
-	val archiveTitle: Setting = new Setting(Setting.LABEL_AND_FIELD, "Name", n, null)
-	add(archiveTitle, 0, 0)
+	val name: Setting[String] = new Setting(Setting.LABEL_AND_FIELD, "Name", n)
+	add(name, 0, 0)
 
-	val archiveRoot: Setting = new Setting(Setting.LABEL_AND_FIELD, "Path", if (p == null) "" else formatDir(p.toString), null)
-	archiveRoot.setPrefWidth(700)
-	add(archiveRoot, 0, 1)
-
-	def getName: String = archiveTitle.getValue
+	val path: Setting[String] = new Setting(Setting.LABEL_AND_FIELD, "Path", if (p == null) "" else formatDir(p.toString))
+	path.setPrefWidth(700)
+	add(path, 0, 1)
 
 	def setArchivePath(p: Path) =
 	{
 		if (!Files.exists(p))
 			Files.createDirectories(p)
-		Main.fx(archiveRoot.setValue(formatDir(p.toString)))
+		Main.fx(path.set(formatDir(p.toString)))
 	}
 	
 	def archive(from: Monitored)
 	{
-		val archivePath = archiveRoot.getValue + formatDir(from.relativePath)
-		if (!Files.exists(Paths.get(archivePath)))
-			Files.createDirectories(Paths.get(archivePath))
-		Files.copy(from.file, Paths.get(archivePath + from.file.getFileName), StandardCopyOption.REPLACE_EXISTING)
+		if (Files.isRegularFile(from.file))
+		{
+			val archivePath = path.get + formatDir(from.relativePath)
+			if (!Files.exists(Paths.get(archivePath)))
+				Files.createDirectories(Paths.get(archivePath))
+			Files.copy(from.file, Paths.get(archivePath + from.file.getFileName), StandardCopyOption.REPLACE_EXISTING)
+		}
 	}
 	
 	def formatDir(dir: String): String =
@@ -46,5 +49,8 @@ class Archive(p: Path = null)(implicit n: String = "New Archive") extends GridPa
 		toReturn
 	}
 
-	def refersTo(p: Path): Boolean = Files.isSameFile(p, Paths.get(archiveRoot.getValue))
+	def refersTo(p: Path): Boolean = Files.isSameFile(p, Paths.get(path.get))
+
+	def toXML: String = "<Archive name=\"" + name.get + "\" path=\"" + path.get + "\" />\r\n"
+	override def toString: String = name.get
 }

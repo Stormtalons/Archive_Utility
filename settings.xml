@@ -1,0 +1,15 @@
+<Archive name="New Archive" path="D:/Code/Java/IntelliJ/Archive Utility/TestArchiveLocation/" />
+<Archive name="Test Archive 2" path="D:/Code/Java/IntelliJ/Archive Utility/TestArchiveLocation/" />
+<Archive name="ASDFQWECZXD" path="D:/Code/Java/IntelliJ/Archive Utility/TestArchiveLocation/" />
+<Archive name="Ziggs" path="D:/Code/Java/IntelliJ/Archive Utility/TestArchiveLocation/" />
+<Archive name="Monolith" path="D:/Code/Java/IntelliJ/Archive Utility/TestArchiveLocation/" />
+<MonitoredGroup name="The Walrus" archive="Ziggs" archiveInterval="5000" lastArchived="1398575695647" >
+	<Monitored path="K:\Temp\testArchive\testArchive" relativePath="testArchive/" exclude="false" includeSubfolders="true" >
+		<Monitored path="K:\Temp\testArchive\testArchive\a.txt" relativePath="testArchive/testArchive" exclude="false" includeSubfolders="true" />
+		<Monitored path="K:\Temp\testArchive\testArchive\asdfasdf" relativePath="testArchive/testArchive" exclude="false" includeSubfolders="true" >
+			<Monitored path="K:\Temp\testArchive\testArchive\asdfasdf\a.txt" relativePath="testArchive/testArchiveasdfasdf" exclude="false" includeSubfolders="true" />
+			<Monitored path="K:\Temp\testArchive\testArchive\asdfasdf\b.txt" relativePath="testArchive/testArchiveasdfasdf" exclude="false" includeSubfolders="true" />
+		</Monitored>
+		<Monitored path="K:\Temp\testArchive\testArchive\b.txt" relativePath="testArchive/testArchive" exclude="false" includeSubfolders="true" />
+	</Monitored>
+</MonitoredGroup>
