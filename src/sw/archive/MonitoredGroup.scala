@@ -67,9 +67,9 @@ class MonitoredGroup(ac: (MonitoredGroup) => Unit = null) extends VBox
 	filesTree.setStyle("-fx-border-width: 1px; -fx-border-style: solid")
 	filesTree.setShowRoot(false)
 	add(filesTree)
-	var disp = new Button("disp")
-	disp.setOnAction(new EventHandler[ActionEvent]{def handle(evt: ActionEvent) = displayAll(s => println(s))})
-	add(disp)
+//	var disp = new Button("disp")
+//	disp.setOnAction(new EventHandler[ActionEvent]{def handle(evt: ActionEvent) = displayAll(s => println(s))})
+//	add(disp)
 	//TODO: Audit database (opt)
 	setStyle("-fx-border-width: 1px; -fx-border-style: solid")
 
