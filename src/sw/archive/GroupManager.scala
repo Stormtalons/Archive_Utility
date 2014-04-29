@@ -8,5 +8,5 @@ class GroupManager extends VBox
 	def add(group: MonitoredGroup) = Main.fx(getChildren.add(group))
 	def get(i: Int): MonitoredGroup = getChildren.get(i).asInstanceOf[MonitoredGroup]
 	def foreach(code: MonitoredGroup => Unit) = for (i <- 0 to count - 1) code(get(i))
-	def archiveAll = foreach((g: MonitoredGroup) => g.archiveAll)
+	def archiveAll = foreach((g: MonitoredGroup) => g.archiveAll(false))
 }

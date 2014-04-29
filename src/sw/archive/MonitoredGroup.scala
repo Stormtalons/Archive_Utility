@@ -2,12 +2,13 @@ package sw.archive
 
 import java.nio.file.{Paths, Path}
 import javafx.scene.layout.VBox
-import javafx.scene.control.{TreeItem, Button, TreeView, Label}
+import javafx.scene.control._
 import javafx.geometry.Insets
 import javafx.event.{EventHandler, ActionEvent}
 import javafx.scene.input.{TransferMode, DataFormat, DragEvent}
 import java.io.File
 import javafx.scene.Node
+import java.util
 
 object MonitoredGroup
 {
@@ -45,27 +46,34 @@ class MonitoredGroup(ac: (MonitoredGroup) => Unit = null) extends VBox
 {
 	setPadding(new Insets(10))
 	setSpacing(10)
-	getStylesheets.add("sw/archive/dft.css")
+	getStylesheets.add("sw/archive/res/dft.css")
 	getStyleClass.add("group")
 	var name: Setting[String] = new Setting(Setting.LABEL_AND_FIELD, "Name", "New Group")
 	add(name)
 	val archiveChooser: Button = new Button("Choose")
 	archiveChooser.setOnAction(new EventHandler[ActionEvent]{def handle(evt: ActionEvent) = ac(MonitoredGroup.this)})
-	val archiveNow: Button = new Button("Archive Now")
-	archiveNow.setOnAction(new EventHandler[ActionEvent]{def handle(evt: ActionEvent) = archiveAll(true)})
-	var archive: Setting[Archive] = new Setting(Setting.LABEL_AND_FIELD, "Archive")
-	archive.addExtras(Array[Button](archiveChooser, archiveNow))
+	val archiveAllNow: Button = new Button("Archive All")
+	archiveAllNow.setOnAction(new EventHandler[ActionEvent]{def handle(evt: ActionEvent) = archiveAll(true)})
+	var archive: Setting[Archive] = new Setting(Setting.LABEL_AND_FIELD, "Archive", null)
+	archive.addExtras(Array[Button](archiveChooser, archiveAllNow))
 	add(archive)
-	var archiveInterval: Setting[Long] = new Setting(Setting.LABEL_AND_FIELD, "Archive Interval")
+	var archiveInterval: Setting[Long] = new Setting(Setting.LABEL_AND_FIELD, "Archive Interval", 0)
 	add(archiveInterval)
-	var lastArchived: Setting[Long] = new Setting(Setting.LABEL_ONLY, Setting.DataType.DATETIME, "Last Archived")
+	var lastArchived: Setting[Long] = new Setting(Setting.LABEL_ONLY, "Last Archived", 0, Setting.DataType.DATETIME)
 	add(lastArchived)
 	var files: Array[Monitored] = Array()
 	var filesLabel: Label = new Label("Monitored Folders:")
 	add(filesLabel)
 	var filesTree: TreeView[String] = new TreeView(new TreeItem[String])
-	filesTree.setStyle("-fx-border-width: 1px; -fx-border-style: solid")
+	filesTree.getStylesheets.add("sw/archive/res/dft.css")
 	filesTree.setShowRoot(false)
+	var popupMenu: ContextMenu = new ContextMenu
+	var archiveNow: MenuItem = new MenuItem("Archive")
+	archiveNow.setOnAction(new EventHandler[ActionEvent]{def handle(evt: ActionEvent) = archive(filesTree.getSelectionModel.getSelectedItem.asInstanceOf[Monitored])})
+	var removeItem: MenuItem = new MenuItem("Remove")
+	removeItem.setOnAction(new EventHandler[ActionEvent]{def handle(evt: ActionEvent) = remove(filesTree.getSelectionModel.getSelectedItem.asInstanceOf[Monitored])})
+	popupMenu.getItems.addAll(archiveNow, removeItem)
+	filesTree.setContextMenu(popupMenu)
 	add(filesTree)
 //	var disp = new Button("disp")
 //	disp.setOnAction(new EventHandler[ActionEvent]{def handle(evt: ActionEvent) = displayAll(s => println(s))})
@@ -85,6 +93,25 @@ class MonitoredGroup(ac: (MonitoredGroup) => Unit = null) extends VBox
 	})
 
 	def add(n: Node) = getChildren.add(n)
+
+	//TODO: This method needs fixing.
+	def remove(toRemove: Monitored): Unit =
+	{
+		toRemove.getParent.getChildren.removeAll(toRemove)
+		files.foreach(file =>
+			file.doForAll(f =>
+				if (f.equals(toRemove))
+				{
+					val (l, r) = file.files.span(f => f.equals(file))
+					println("Left:")
+					l.foreach(f => print(f.toString + ", "))
+					println
+					println("Right:")
+					r.foreach(f => print(f.toString + ", "))
+					file.files = l union r.drop(1)
+					return
+				}))
+	}
 
 	private def refreshTree =
 	{
@@ -110,6 +137,7 @@ class MonitoredGroup(ac: (MonitoredGroup) => Unit = null) extends VBox
 		for (i <- 0 to files.length - 1)
 			if (files(i).equals(file))
 			{
+				println("returning this")
 				files(i) = file
 				return
 			}
@@ -118,7 +146,7 @@ class MonitoredGroup(ac: (MonitoredGroup) => Unit = null) extends VBox
 	}
 	def include(path: Path, subfolders: Boolean = true): Unit =
 		if (getMonitoredFile(path) == null)
-			include(new Monitored(path, path.getFileName.toString + "/", subfolders))
+			include(new Monitored(path, path.getFileName.toString + "/", null, subfolders))
 	def includeAll(paths: Array[Path], subfolders: Boolean = true) = paths.foreach(p => include(p, subfolders))
 
 	def getMonitoredFile(p: Path): Monitored =
@@ -136,13 +164,16 @@ class MonitoredGroup(ac: (MonitoredGroup) => Unit = null) extends VBox
 
 	def setArchive(a: Archive) = archive.set(a)
 
-	def archiveAll: Unit = archiveAll(false)
-	private def archiveAll(overrideInterval: Boolean): Unit =
+	def archiveAll(overrideInterval: Boolean) =
 		if (archive.get != null && (System.currentTimeMillis > lastArchived.get + archiveInterval.get || overrideInterval))
 		{
-			files.foreach(file => file.scan(file => archive.get.archive(file)))
+			files.foreach(file => archive(file))
 			lastArchived.set(System.currentTimeMillis)
 		}
+
+	def archive(file: Monitored): Unit =
+		if (archive.get != null)
+			file.doForAll(file => archive.get.archive(file))
 
 	def displayAll(doWith: (String) => Unit) = files.foreach(f => f.scan(f => doWith(f.file.toString)))
 	
@@ -151,8 +182,8 @@ class MonitoredGroup(ac: (MonitoredGroup) => Unit = null) extends VBox
 		val xml = new StringBuilder
 		xml.append("<MonitoredGroup name=\"" + name.get + "\" ")
 		xml.append("archive=\"" + (if (archive.get != null) archive.get else "") + "\" ")
-		xml.append("archiveInterval=\"" + (if (archiveInterval.get != null) archiveInterval.get else "") + "\" ")
-		xml.append("lastArchived=\"" + (if (lastArchived.get != null) lastArchived.get else "") + "\" ")
+		xml.append("archiveInterval=\"" + archiveInterval.get + "\" ")
+		xml.append("lastArchived=\"" + lastArchived.get + "\" ")
 		if (files.length == 0)
 			xml.append("/>\r\n")
 		else

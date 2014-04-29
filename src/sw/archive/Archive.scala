@@ -15,7 +15,7 @@ class Archive(p: Path, n: String) extends GridPane
 	setHgap(10)
 	setVgap(10)
 	getStyleClass.add("archive")
-	getStylesheets.add("sw/archive/dft.css")
+	getStylesheets.add("sw/archive/res/dft.css")
 	val name: Setting[String] = new Setting(Setting.LABEL_AND_FIELD, "Name", n)
 	add(name, 0, 0)
 
@@ -23,24 +23,17 @@ class Archive(p: Path, n: String) extends GridPane
 	path.setPrefWidth(700)
 	add(path, 0, 1)
 
-	def setArchivePath(p: Path) =
-	{
-		if (!Files.exists(p))
-			Files.createDirectories(p)
-		Main.fx(path.set(formatDir(p.toString)))
-	}
+	def setArchivePath(p: Path) = Main.fx(path.set(formatDir(p.toString)))
 	
-	def archive(from: Monitored)
-	{
-		if (Files.isRegularFile(from.file))
+	def archive(from: Monitored) =
+		if (Files.isRegularFile(from.file) && from.exclude.isSelected && !from.excludeViaParent)
 		{
 			val archivePath = path.get + formatDir(from.relativePath)
 			if (!Files.exists(Paths.get(archivePath)))
 				Files.createDirectories(Paths.get(archivePath))
 			Files.copy(from.file, Paths.get(archivePath + from.file.getFileName), StandardCopyOption.REPLACE_EXISTING)
 		}
-	}
-	
+
 	def formatDir(dir: String): String =
 	{
 		var toReturn = dir.replaceAll("\\\\", "/")

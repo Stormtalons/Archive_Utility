@@ -22,7 +22,7 @@ object Setting
 	}
 }
 
-class Setting[Any](display: Int, data: Int, name: String, initialVal: Any) extends HBox
+class Setting[Any](display: Int, name: String, initialVal: Any, data: Int = Setting.DataType.NORMAL) extends HBox
 {
 	var displayType: Int = display
 	var dataType: Int = data
@@ -37,10 +37,6 @@ class Setting[Any](display: Int, data: Int, name: String, initialVal: Any) exten
 	valueLabel.setPadding(new Insets(0, 0, 0, 10))
 	val valueField: TextField = new TextField
 	valueField.setText(if (initialVal == null) "" else initialVal.toString)
-
-	def this(display: Int, name: String) = this(display, Setting.DataType.NORMAL, name, null.asInstanceOf[Any])
-	def this(display: Int, name: String, initialVal: Any) = this(display, Setting.DataType.NORMAL, name, initialVal)
-	def this(display: Int, data: Int, name: String) = this(display, data, name, null.asInstanceOf[Any])
 
 	if (displayType == Setting.FIELD_ONLY)
 		valueLabel.setVisible(false)

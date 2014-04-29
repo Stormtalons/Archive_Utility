@@ -1,0 +1,35 @@
+.group {
+    -fx-font-size: 16pt;
+    -fx-font-family: Consolas;
+    -fx-font-weight: normal;
+}
+.archive {
+    -fx-border-color: black;
+    -fx-border-width: 1;
+    -fx-border-style: solid;
+}
+.archiveHover:hover {
+    -fx-border-color: blue;
+    -fx-border-width: 2px;
+    -fx-border-style: solid;
+}
+.tree-view {
+    -fx-border-width: 1px;
+    -fx-border-style: solid
+}
+.tree-cell .tree-disclosure-node .arrow {
+    -fx-shape: null;
+    -fx-pref-width: 16;
+    -fx-pref-height: 16;
+    -fx-background-color: null;
+    -fx-background-image: url("fld_closed.png");
+    -fx-translate-x: 7;
+}
+.tree-cell:expanded .tree-disclosure-node .arrow {
+    -fx-background-image: url("fld_open.png");
+}
+.check-box {
+    -fx-translate-y: -3;
+    -fx-scale-x: 0.6;
+    -fx-scale-y: 0.6;
+}
