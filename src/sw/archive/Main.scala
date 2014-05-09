@@ -14,6 +14,13 @@ object Main extends App
 	def run(code: => Unit) = new Thread(new Runnable {def run = code}).start
 	def fx(code: => Unit) = if (Platform.isFxApplicationThread) code else Platform.runLater(new Runnable{def run = code})
 	def tryGet[Any](code: => Any, default: Any): Any = try{code}catch{case _: Throwable => default}
+	def formatFilePath(dir: String): String =
+	{
+		var toReturn = dir.replaceAll("\\\\", "/")
+		if (!toReturn.endsWith("/") && Files.isDirectory(Paths.get(toReturn)))
+			toReturn += "/"
+		toReturn
+	}
 }
 class Main extends Application
 {
@@ -118,5 +125,6 @@ class Main extends Application
 				archives.add(Archive.fromXML(temp.getLine(0)))
 			index += temp.lines.length
 		}
+		groups.refreshAll
 	}
 }

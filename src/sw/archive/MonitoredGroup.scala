@@ -18,7 +18,7 @@ object MonitoredGroup extends Monitored
 		{
 			val toReturn = new MonitoredGroup(ac)
 			toReturn.setName(line.getAttr("name"))
-			toReturn.setArchive(getArchive(line.getAttr("archive")), Main.tryGet[Long](line.getAttr("archiveInterval").toLong, 0))
+			toReturn.setArchiveInfo(getArchive(line.getAttr("archive")), Main.tryGet[Long](line.getAttr("archiveInterval").toLong, 0))
 			toReturn.setLastArchived(Main.tryGet[Long](line.getAttr("lastArchived").toLong, 0))
 			toReturn
 		}
@@ -32,7 +32,6 @@ class MonitoredGroup(ac: (MonitoredGroup) => Unit) extends VBox with Monitored
 	getStylesheets.add("sw/archive/res/dft.css")
 	getStyleClass.add("group")
 	setStyle("-fx-border-width: 1px; -fx-border-style: solid")
-
 	setOnDragOver(new EventHandler[DragEvent]{def handle(evt: DragEvent) = if (evt.getDragboard.hasContent(DataFormat.FILES)) evt.acceptTransferModes(TransferMode.COPY)})
 	setOnDragDropped(new EventHandler[DragEvent]
 	{
@@ -43,11 +42,10 @@ class MonitoredGroup(ac: (MonitoredGroup) => Unit) extends VBox with Monitored
 				addChild(Paths.get(files.get(i).getPath), true)
 		}
 	})
-
-	includeSubfolders = true
+	setIncludeSubfolders(true)
 
 	private val name: Setting = new Setting(Setting.LABEL_AND_FIELD, "Name", "New Group")
-	def getname: String = name.get
+	def getName: String = name.get
 	def setName(n: String) = name.set(n)
 	getChildren.add(name)
 
@@ -56,25 +54,31 @@ class MonitoredGroup(ac: (MonitoredGroup) => Unit) extends VBox with Monitored
 	private val archiveAllNow: Button = new Button("Archive All")
 	archiveAllNow.setOnAction(new EventHandler[ActionEvent]{def handle(evt: ActionEvent) = archive(null, true)})
 	private var archive: Archive = null
-	private val archiveName: Setting = new Setting(Setting.LABEL_AND_FIELD, "Archive")
-	archiveName.addExtras(Array[Button](archiveChooser, archiveAllNow))
-	private val archiveInterval: Setting = new Setting(Setting.LABEL_AND_FIELD, "Archive Interval")
-	private var lastArchived: Long = 0
-	private val lastArchivedLabel: Setting = new Setting(Setting.LABEL_ONLY, "Last Archived")
 	def getArchive: Archive = archive
-	def setArchive(a: Archive, interval: Long = 0) =
+	private val archiveName: Setting = new Setting(Setting.LABEL_AND_FIELD, "Archive", ac(MonitoredGroup.this))
+	archiveName.addExtras(Array[Button](archiveChooser, archiveAllNow))
+	def getArchiveName: String = archiveName.get
+	def setArchive(a: Archive) =
 		if (a != null)
 		{
 			archive = a
 			archiveName.set(archive.toString)
-			if (interval != 0)
-				archiveInterval.set(interval.toString)
 		}
+	private val archiveInterval: Setting = new Setting(Setting.LABEL_AND_FIELD, "Archive Interval")
+	def getArchiveInterval: Long = Main.tryGet[Long](archiveInterval.get.toLong, 0)
+	def setArchiveInterval(interval: Long) = archiveInterval.set(if (interval == 0) "" else interval.toString)
+	def setArchiveInfo(a: Archive, interval: Long) =
+	{
+		setArchive(a)
+		setArchiveInterval(interval)
+	}
+	private var lastArchived: Long = 0
+	private val lastArchivedLabel: Setting = new Setting(Setting.LABEL_ONLY, "Last Archived")
 	def getLastArchived: Long = lastArchived
 	def setLastArchived(time: Long = 0) =
 	{
 		lastArchived = time
-		lastArchivedLabel.set(new SimpleDateFormat("yyyy/MM/dd HH:mm:ss").format(time))
+		lastArchivedLabel.set(if (lastArchived == 0) "" else new SimpleDateFormat("yyyy/MM/dd HH:mm:ss").format(time))
 	}
 	getChildren.addAll(archiveName, archiveInterval, lastArchivedLabel)
 
@@ -103,18 +107,18 @@ class MonitoredGroup(ac: (MonitoredGroup) => Unit) extends VBox with Monitored
 		else false
 
 	def addChild(path: Path, subfolders: Boolean): Unit =
-		if (tracksChild(path, true) != null)
+		if (hasChild(path, true) != null)
 			JOptionPane.showMessageDialog(null, "This " + (if (Files.isDirectory(path)) "folder" else "file") + " is already monitored by this group.")
 		else
 		{
-			addChild(new MonitoredItem(path, path.getFileName + "/", subfolders, false, false))
+			addChild(new MonitoredItem(path, "", subfolders, false, false, true))
 			refreshContents
 		}
 
 	def remove(toRemove: MonitoredItem): Unit =
 		if (children.contains(toRemove))
 		{
-			val (l, r) = children.span(child => child.equals(toRemove))
+			val (l, r) = children.span(child => child.isSameFile(toRemove))
 			children = l.dropRight(1).union(r)
 			filesTree.getRoot.getChildren.clear
 			children.foreach(child => filesTree.getRoot.getChildren.add(child))
@@ -126,26 +130,17 @@ class MonitoredGroup(ac: (MonitoredGroup) => Unit) extends VBox with Monitored
 
 	def archive(child: MonitoredItem, userInitiated: Boolean): Unit =
 	{
-		if (archive == null)
+		if (getArchive == null)
 			return
-		if (userInitiated || System.currentTimeMillis > Main.tryGet[Long](lastArchivedLabel.get.toLong, 0) + Main.tryGet[Long](archiveInterval.get.toLong, 0))
+		if (userInitiated || System.currentTimeMillis > getLastArchived + getArchiveInterval)
 			if (child == null)
 			{
-				doForEach(child =>
-				{
-					archive.archive(child)
-					true
-				})
-
+				forEachChild(child => getArchive.archive(child))
 				setLastArchived(System.currentTimeMillis)
 			}
 			else
-				child.doForEach(child =>
-				{
-					archive.archive(child)
-					true
-				})
+				child.forEachChild(child => getArchive.archive(child))
 	}
 
-	def getXML: (String, String) = ("MonitoredGroup", "name=\"" + name.get + "\" archive=\"" + archiveName.get + "\" archiveInterval=\"" + archiveInterval.get + "\" lastArchived=\"" + lastArchived + "\" ")
+	def getXML: (String, String) = ("MonitoredGroup", "name=\"" + getName + "\" archive=\"" + getArchiveName + "\" archiveInterval=\"" + getArchiveInterval + "\" lastArchived=\"" + getLastArchived + "\" ")
 }

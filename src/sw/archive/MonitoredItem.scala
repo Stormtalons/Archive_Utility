@@ -9,25 +9,32 @@ import javafx.event.{EventHandler, ActionEvent}
 object MonitoredItem extends Monitored
 {
 	val fileImg: Image = new Image(getClass.getResourceAsStream("res/file.png"))
-	private implicit def getItem(line: XMLLine): MonitoredItem = new MonitoredItem(Paths.get(line.getAttr("path")), line.getAttr("relativePath"), Main.tryGet[Boolean](line.getAttr("includeSubfolders").toBoolean, true), Main.tryGet[Boolean](line.getAttr("exclude").toBoolean, false), false)
+	implicit def getItem(line: XMLLine): MonitoredItem = new MonitoredItem(Paths.get(line.getAttr("path")), line.getAttr("relativePath"), Main.tryGet[Boolean](line.getAttr("includeSubfolders").toBoolean, true), Main.tryGet[Boolean](line.getAttr("exclude").toBoolean, false), false, Main.tryGet[Int](line.getAttr("relativePath").length, 0) == 0)
 	def fromXML(block: XMLBlock): MonitoredItem = fromXML[MonitoredItem](block)
 }
-class MonitoredItem(f: Path, rp: String, subfolders: Boolean, ex: Boolean, pe: Boolean) extends TreeItem[String] with Monitored
+class MonitoredItem(f: Path, rp: String, subfolders: Boolean, ex: Boolean, pe: Boolean, dfp: Boolean = false) extends TreeItem[String] with Monitored
 {
 	private val file: Path = f
 	def getFile: Path = file
-	def getFilePath: String = file.toString
-	def getFileName: String = file.getFileName.toString
+	def getFilePath: String = Main.formatFilePath(getFile.toString)
+	def getFileName: String = getFile.getFileName.toString + (if (isDir) "/" else "")
+	def isDir: Boolean = Files.isDirectory(getFile)
+	def exists: Boolean = Files.exists(file)
+	def isSameFile(toCheck: MonitoredItem): Boolean = if (toCheck.exists && exists) Files.isSameFile(toCheck.getFile, getFile) else toCheck.getFilePath.equals(getFilePath)
+	def isSameFile(toCheck: Path): Boolean = if (Files.exists(toCheck) && exists) Files.isSameFile(toCheck, getFile) else toCheck.toString.equals(getFilePath)
+
+	setValue(if (dfp) getFilePath else getFileName)
 
 	private val relativePath: String = rp
 	def getRelativePath: String = relativePath
 
-	includeSubfolders = subfolders
+	setIncludeSubfolders(subfolders)
+
 	private var parentalExclusion: Boolean = pe
 	def getParentalExclusion: Boolean = parentalExclusion
 	def setParentalExclusion(evp: Boolean): Unit = parentalExclusion = evp
 	private val graphic: HBox = new HBox
-	if (!Files.isDirectory(file) && Files.exists(file))
+	if (!isDir && exists)
 		graphic.getChildren.add(new ImageView(MonitoredItem.fileImg))
 	private val exclude: CheckBox = new CheckBox
 	exclude.setSelected(!ex)
@@ -39,7 +46,7 @@ class MonitoredItem(f: Path, rp: String, subfolders: Boolean, ex: Boolean, pe: B
 	def toggleExcluded(ex: Boolean) =
 	{
 		exclude.setSelected(ex)
-		doForEach(child =>
+		forEachChild(child =>
 		{
 			child.setParentalExclusion(!ex)
 			child.setDisabled(!ex)
@@ -48,9 +55,6 @@ class MonitoredItem(f: Path, rp: String, subfolders: Boolean, ex: Boolean, pe: B
 	}
 
 	def setDisabled(disabled: Boolean): Unit = exclude.setDisable(disabled)
-
-	def equals(item: MonitoredItem): Boolean = if (Files.exists(item.getFile) && Files.exists(getFile)) Files.isSameFile(item.getFile, file) else item.getFilePath.equals(getFilePath)
-	def equals(p: Path): Boolean = if (Files.exists(p) && Files.exists(file)) Files.isSameFile(p, file) else p.toString.equals(getFilePath)
 
 	def getXML: (String, String) = ("MonitoredItem", "path=\"" + getFilePath + "\" relativePath=\"" + getRelativePath + "\" exclude=\"" + isExcluded + "\" includeSubfolders=\"" + getIncludeSubfolders + "\" ")
 }

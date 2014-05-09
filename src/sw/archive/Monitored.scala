@@ -4,66 +4,73 @@ import java.nio.file.{Files, Path}
 
 trait Monitored
 {
-	protected var includeSubfolders: Boolean = true
+	private var includeSubfolders: Boolean = true
 	def getIncludeSubfolders: Boolean = includeSubfolders
+	def setIncludeSubfolders(inc: Boolean) = includeSubfolders = inc
 
 	protected var children: Array[MonitoredItem] = Array()
 
 	def addChild(newChild: MonitoredItem): Boolean =
 	{
 		for (i <- 0 to children.length - 1)
-			if (children(i).equals(newChild))
+			if (children(i).isSameFile(newChild))
 			{
 				children(i) = newChild
-				false
+				return false
 			}
 		children = children :+ newChild
 		true
 	}
 
-	def tracksChild(p: Path, checkAll: Boolean = false): MonitoredItem =
+	def hasChild(p: Path, checkAll: Boolean = false): MonitoredItem =
 	{
-		doForEach(child =>
-		{
-			if (child.equals(p)) return child
-			checkAll
-		})
+		forEachChild(child => if (child.isSameFile(p)) return child, checkAll)
 		null
+	}
+
+	def forEachChild(code: (MonitoredItem) => Unit, recurse: Boolean = true): Unit =
+		children.foreach(child =>
+		{
+			code(child)
+			if (recurse) child.forEachChild(code)
+		})
+
+	def sortChildren =
+	{
+		children = children.sortWith((c1: MonitoredItem, c2: MonitoredItem) =>
+		{
+			if (c1.isDir && !c2.isDir)
+				true
+			else
+				c1.getFileName < c2.getFileName
+		})
 	}
 
 	def refreshContents: Unit =
 	{
-		doForEach(child =>
+		sortChildren
+		forEachChild(child =>
 		{
-			println("Adding - " + child.getFile.toString)
 			if (Files.isDirectory(child.getFile))
 			{
 				var newChildren: Array[MonitoredItem] = Array()
 				val it = Files.newDirectoryStream(child.getFile).iterator
 				while (it.hasNext)
 				{
-					val p = it.next()
-					val newChild = tracksChild(p)
-					newChildren = newChildren :+ (if (newChild != null) newChild else new MonitoredItem(p, child.getRelativePath + p.getFileName + "/", child.includeSubfolders, if (Files.isRegularFile(p)) false else !child.includeSubfolders, false))
+					val path = it.next()
+					if (hasChild(path) == null)
+						newChildren = newChildren :+ new MonitoredItem(path, child.getRelativePath + child.getFileName, child.includeSubfolders, if (Files.isRegularFile(path)) false else !child.includeSubfolders, false)
 				}
-				children = newChildren
+				child.children = newChildren
+				child.sortChildren
 				Main.fx(
 				{
 					child.getChildren.clear
-					children.foreach(child => child.getChildren.add(child))
+					child.forEachChild(c => child.getChildren.add(c), false)
 				})
 			}
-			true
 		})
 	}
-
-	def doForEach(code: (MonitoredItem) => Boolean): Unit =
-		if (code != null)
-			children.foreach(child =>
-			{
-				if (code(child))
-					child.doForEach(code)
-			})
 
 	def fromXML[AnyRef <: Monitored](block: XMLBlock)(implicit getItem: (XMLLine) => AnyRef): AnyRef =
 	{

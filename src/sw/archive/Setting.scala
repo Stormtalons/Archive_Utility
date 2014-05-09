@@ -22,8 +22,20 @@ object Setting
 	}
 }
 
-class Setting(display: Int, name: String, initialValue: String = "") extends HBox
+class Setting(display: Int, name: String, initialValue: String) extends HBox
 {
+	def this(display: Int, name: String) = this(display, name, "")
+	def this(display: Int, name: String, edit: => Unit) =
+	{
+		this(display, name)
+		setEditHandler(edit)
+	}
+	def this(display: Int, name: String, initialValue: String, edit: => Unit) =
+	{
+		this(display, name, initialValue)
+		setEditHandler(edit)
+	}
+
 	var displayType: Int = display
 
 	private val label: Label = new Label(name)
@@ -37,13 +49,8 @@ class Setting(display: Int, name: String, initialValue: String = "") extends HBo
 	valueField.setText(if (initialValue == null) "" else initialValue.toString)
 
 	(if (displayType == Setting.FIELD_ONLY) valueLabel else valueField).setVisible(false)
+	if (displayType == Setting.LABEL_AND_FIELD) setEditHandler(toggleEdit)
 
-	if (displayType == Setting.LABEL_AND_FIELD)
-	{
-		valuePane.setOnMouseClicked(new EventHandler[MouseEvent]{def handle(evt: MouseEvent) = if (evt.getButton == MouseButton.PRIMARY && !valueField.isVisible) toggleEdit})
-		valueField.setOnAction(new EventHandler[ActionEvent]{def handle(evt: ActionEvent) = toggleEdit})
-		valueField.focusedProperty.addListener(new ChangeListener[java.lang.Boolean]{def changed(prop: ObservableValue[_ <: java.lang.Boolean], oldVal: java.lang.Boolean, newVal: java.lang.Boolean) = if (!newVal && valueField.isVisible) toggleEdit})
-	}
 	valuePane.getChildren.addAll(valueLabel, valueField)
 
 	setSpacing(10)
@@ -51,6 +58,13 @@ class Setting(display: Int, name: String, initialValue: String = "") extends HBo
 	getChildren.addAll(label, valuePane)
 
 	def addExtras(extras: Array[_ <: Node]) = if (extras != null) for (n <- extras) getChildren.add(n)
+
+	def setEditHandler(edit: => Unit) =
+	{
+		valuePane.setOnMouseClicked(new EventHandler[MouseEvent]{def handle(evt: MouseEvent) = if (evt.getButton == MouseButton.PRIMARY && !valueField.isVisible) edit})
+		valueField.setOnAction(new EventHandler[ActionEvent]{def handle(evt: ActionEvent) = edit})
+		valueField.focusedProperty.addListener(new ChangeListener[java.lang.Boolean]{def changed(prop: ObservableValue[_ <: java.lang.Boolean], oldVal: java.lang.Boolean, newVal: java.lang.Boolean) = if (!newVal && valueField.isVisible) edit})
+	}
 
 	def toggleEdit =
 		Main.fx(
