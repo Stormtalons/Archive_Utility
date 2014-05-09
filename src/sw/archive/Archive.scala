@@ -16,22 +16,22 @@ class Archive(p: Path, n: String) extends GridPane
 	setVgap(10)
 	getStyleClass.add("archive")
 	getStylesheets.add("sw/archive/res/dft.css")
-	val name: Setting[String] = new Setting(Setting.LABEL_AND_FIELD, "Name", n)
+	private val name: Setting = new Setting(Setting.LABEL_AND_FIELD, "Name", n)
 	add(name, 0, 0)
 
-	val path: Setting[String] = new Setting(Setting.LABEL_AND_FIELD, "Path", if (p == null) "" else formatDir(p.toString))
+	private val path: Setting = new Setting(Setting.LABEL_AND_FIELD, "Path", if (p == null) "" else formatDir(p.toString))
 	path.setPrefWidth(700)
 	add(path, 0, 1)
 
 	def setArchivePath(p: Path) = Main.fx(path.set(formatDir(p.toString)))
-	
-	def archive(from: Monitored) =
-		if (Files.isRegularFile(from.file) && from.exclude.isSelected && !from.excludeViaParent)
+
+	def archive(from: MonitoredItem) =
+		if (Files.isRegularFile(from.getFile) && !from.isExcluded && !from.getParentalExclusion)
 		{
-			val archivePath = path.get + formatDir(from.relativePath)
+			val archivePath = path.get + formatDir(from.getRelativePath)
 			if (!Files.exists(Paths.get(archivePath)))
 				Files.createDirectories(Paths.get(archivePath))
-			Files.copy(from.file, Paths.get(archivePath + from.file.getFileName), StandardCopyOption.REPLACE_EXISTING)
+			Files.copy(from.getFile, Paths.get(archivePath + from.getFile.getFileName), StandardCopyOption.REPLACE_EXISTING)
 		}
 
 	def formatDir(dir: String): String =

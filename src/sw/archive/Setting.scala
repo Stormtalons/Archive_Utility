@@ -22,26 +22,21 @@ object Setting
 	}
 }
 
-class Setting[Any](display: Int, name: String, initialVal: Any, data: Int = Setting.DataType.NORMAL) extends HBox
+class Setting(display: Int, name: String, initialValue: String = "") extends HBox
 {
 	var displayType: Int = display
-	var dataType: Int = data
-	var value: Any = initialVal
 
-	val label: Label = new Label(name)
-	val valuePane: StackPane = new StackPane
+	private val label: Label = new Label(name)
+	private val valuePane: StackPane = new StackPane
 	valuePane.setStyle("-fx-border-width: 1px; -fx-border-color: gray; -fx-border-style: solid")
 	HBox.setHgrow(valuePane, Priority.ALWAYS)
-	val valueLabel: Label = new Label(if (initialVal == null) "" else initialVal.toString)
+	private val valueLabel: Label = new Label(if (initialValue == null) "" else initialValue.toString)
 	StackPane.setAlignment(valueLabel, Pos.CENTER_LEFT)
 	valueLabel.setPadding(new Insets(0, 0, 0, 10))
-	val valueField: TextField = new TextField
-	valueField.setText(if (initialVal == null) "" else initialVal.toString)
+	private val valueField: TextField = new TextField
+	valueField.setText(if (initialValue == null) "" else initialValue.toString)
 
-	if (displayType == Setting.FIELD_ONLY)
-		valueLabel.setVisible(false)
-	else
-		valueField.setVisible(false)
+	(if (displayType == Setting.FIELD_ONLY) valueLabel else valueField).setVisible(false)
 
 	if (displayType == Setting.LABEL_AND_FIELD)
 	{
@@ -68,21 +63,17 @@ class Setting[Any](display: Int, name: String, initialVal: Any, data: Int = Sett
 			}
 			else
 			{
-				set((if (value.isInstanceOf[Long]) java.lang.Long.parseLong(valueField.getText) else valueField.getText).asInstanceOf[Any])
+				set(valueField.getText)
 				valueField.setVisible(false)
 				valueLabel.setVisible(true)
 			}
 		})
 
-	def get: Any = value
-	def set(v: Any) =
-	{
-		value = v
+	def get = if (valueLabel.isVisible) valueLabel.getText else valueField.getText
+	def set(v: String) =
 		Main.fx(
 		{
-			val toSet = if (dataType == Setting.DataType.DATETIME) new SimpleDateFormat("yyyy/MM/dd HH:mm:ss").format(value) else if (value != null) value.toString else ""
-			valueLabel.setText(toSet)
-			valueField.setText(toSet)
+			valueLabel.setText(v)
+			valueField.setText(v)
 		})
-	}
 }

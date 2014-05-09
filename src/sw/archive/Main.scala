@@ -13,6 +13,7 @@ object Main extends App
 	new Main().launch
 	def run(code: => Unit) = new Thread(new Runnable {def run = code}).start
 	def fx(code: => Unit) = if (Platform.isFxApplicationThread) code else Platform.runLater(new Runnable{def run = code})
+	def tryGet[Any](code: => Any, default: Any): Any = try{code}catch{case _: Throwable => default}
 }
 class Main extends Application
 {
@@ -100,7 +101,7 @@ class Main extends Application
 	{
 		val toWrite = new StringBuilder
 		archives.foreach((a: Archive) => toWrite.append(a.toXML))
-		groups.foreach((g: MonitoredGroup) => toWrite.append(g.toXML))
+		groups.foreach((g: MonitoredGroup) => toWrite.append(g.toXML(g.getXML, "")))
 		Files.write(Paths.get("settings.xml"), toWrite.substring(0, toWrite.length - 2).getBytes, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING)
 	}
 

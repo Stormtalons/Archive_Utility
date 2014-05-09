@@ -3,19 +3,7 @@
 <Archive name="ASDFQWECZXD" path="D:/Code/Java/IntelliJ/Archive Utility/TestArchiveLocation/" />
 <Archive name="Ziggs" path="D:/Code/Java/IntelliJ/Archive Utility/TestArchiveLocation/" />
 <Archive name="Monolith" path="D:/Code/Java/IntelliJ/Archive Utility/TestArchiveLocation/" />
-<MonitoredGroup name="New Group" archive="" archiveInterval="0" lastArchived="0" >
-	<Monitored path="D:\Code\Java\IntelliJ\Archive Utility\TestArchiveLocation\testArchive" relativePath="testArchive/" exclude="false" includeSubfolders="true" >
-		<Monitored path="D:\Code\Java\IntelliJ\Archive Utility\TestArchiveLocation\testArchive\testArchiveasdfasdf" relativePath="testArchive/testArchive" exclude="false" includeSubfolders="true" >
-			<Monitored path="D:\Code\Java\IntelliJ\Archive Utility\TestArchiveLocation\testArchive\testArchiveasdfasdf\a.txt" relativePath="testArchive/testArchivetestArchiveasdfasdf" exclude="false" includeSubfolders="true" />
-			<Monitored path="D:\Code\Java\IntelliJ\Archive Utility\TestArchiveLocation\testArchive\testArchiveasdfasdf\b.txt" relativePath="testArchive/testArchivetestArchiveasdfasdf" exclude="false" includeSubfolders="true" />
-		</Monitored>
-	</Monitored>
-	<Monitored path="K:\Temp\testArchive\testArchive" relativePath="testArchive/" exclude="false" includeSubfolders="true" >
-		<Monitored path="K:\Temp\testArchive\testArchive\a.txt" relativePath="testArchive/testArchive" exclude="false" includeSubfolders="true" />
-		<Monitored path="K:\Temp\testArchive\testArchive\asdfasdf" relativePath="testArchive/testArchive" exclude="false" includeSubfolders="true" >
-			<Monitored path="K:\Temp\testArchive\testArchive\asdfasdf\a.txt" relativePath="testArchive/testArchiveasdfasdf" exclude="false" includeSubfolders="true" />
-			<Monitored path="K:\Temp\testArchive\testArchive\asdfasdf\b.txt" relativePath="testArchive/testArchiveasdfasdf" exclude="false" includeSubfolders="true" />
-		</Monitored>
-		<Monitored path="K:\Temp\testArchive\testArchive\b.txt" relativePath="testArchive/testArchive" exclude="false" includeSubfolders="true" />
-	</Monitored>
+<MonitoredGroup name="New Group" archive="Ziggs" archiveInterval="" lastArchived="" >
+	<MonitoredItem path="K:\Temp\testArchive\testArchive\asdfasdf\a.txt" relativePath="testArchive/asdfasdf/a.txt/" exclude="false" includeSubfolders="true" />
+	<MonitoredItem path="K:\Temp\testArchive\testArchive\asdfasdf\b.txt" relativePath="testArchive/asdfasdf/b.txt/" exclude="false" includeSubfolders="true" />
 </MonitoredGroup>
