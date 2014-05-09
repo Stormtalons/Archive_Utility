@@ -8,12 +8,27 @@ import javafx.scene.Scene
 import javafx.event.{ActionEvent, EventHandler}
 import java.nio.file.{StandardOpenOption, OpenOption, Files, Paths}
 
+/*
+	Application entry point. This class defines and manages the UI, is responsible for
+	any functionality used globally, and facilitates thread management.
+ */
+
 object Main extends App
 {
 	new Main().launch
+
+//Provides an easy interface for asynchronously executing any section(s) of code.
 	def run(code: => Unit) = new Thread(new Runnable {def run = code}).start
+
+//Provides an easy interface for modifying UI elements, ensuring that all such
+//modification is done on the JavaFX Application thread.
 	def fx(code: => Unit) = if (Platform.isFxApplicationThread) code else Platform.runLater(new Runnable{def run = code})
+
+//Provides a mechanism for safely attempting to get a value from any section of code,
+//and allows the calling context to specify a desired default value should the code fail.
 	def tryGet[Any](code: => Any, default: Any): Any = try{code}catch{case _: Throwable => default}
+
+//Ensures global consistency in file path formatting.
 	def formatFilePath(dir: String): String =
 	{
 		var toReturn = dir.replaceAll("\\\\", "/")
@@ -22,6 +37,7 @@ object Main extends App
 		toReturn
 	}
 }
+
 class Main extends Application
 {
 	def launch = javafx.application.Application.launch()
@@ -41,27 +57,39 @@ class Main extends Application
 	var archiveTab: Tab = null
 	var archives: ArchiveManager = null
 
+//Code for selecting an archive, and assigning the selection to whichever
+//MonitoredGroup called it. It is used during group creation. This resolves
+//the difference in scope between the ArchiveManager and the GroupManager
+//while still providing loose coupling.
 	def selectArchive(group: MonitoredGroup) =
 	{
 		tabPane.getSelectionModel.select(archiveTab)
-		archives.choose((result: Archive) =>
-		{
-			group.setArchive(result)
-			Main.fx(tabPane.getSelectionModel.select(monitoredTab))
-		}, tabPane.getSelectionModel.isSelected(1))
+		archives.choose(
+			//What should be done with the selected archive.
+			(result: Archive) =>
+			{
+				group.setArchive(result)
+				Main.fx(tabPane.getSelectionModel.select(monitoredTab))
+			},
+			//Cancel selection if the tab is changed before selection occurs.
+			tabPane.getSelectionModel.isSelected(1))
 	}
 
 	def start(stg: Stage) =
 	{
+	//UI creation
 		contentPane = new VBox
 		contentPane.setStyle("-fx-font-size: 16pt")
-		
+
+	//Misc. tools group. These are designed to be temporary - any functionality
+	//desired post-development should be moved to a more natural location.
 		toolBar = new HBox
 		addGroup = new Button("Add New Group")
 		addGroup.setOnAction(new EventHandler[ActionEvent]{def handle(evt: ActionEvent) = groups.add(new MonitoredGroup((group: MonitoredGroup) => selectArchive(group)))})
 		toggleRunning = new Button("Enable Activity Loop")
 		toggleRunning.setOnAction(new EventHandler[ActionEvent]{def handle(evt: ActionEvent) = toggleActivity})
 		toolBar.getChildren.addAll(addGroup, toggleRunning)
+	//End misc. tools
 
 		tabPane = new TabPane
 		VBox.setVgrow(tabPane, Priority.ALWAYS)
@@ -76,16 +104,21 @@ class Main extends Application
 		scrollPane.setContent(groups)
 		monitoredTab.setContent(scrollPane)
 		tabPane.getTabs.addAll(monitoredTab, archiveTab)
-		
 		contentPane.getChildren.addAll(toolBar, tabPane)
-		
+	//End UI creation
+
+	//On window close, save current status before exiting.
 		stg.addEventHandler(WindowEvent.WINDOW_HIDING, new EventHandler[WindowEvent]{def handle(evt: WindowEvent) = quit})
 		stg.setScene(new Scene(contentPane, 1200, 1000))
 		stg.show
 
+	//Load previous settings from file. This is done after the stage is
+	//shown to prevent any issues that might occur from attempting to add
+	//UI elements to a UI that doesn't exist yet.
 		load
 	}
 
+//Main activity loop. Responsible for initiating archival on schedule for all groups.
 	var running = false
 	def toggleActivity =
 	{
@@ -104,14 +137,16 @@ class Main extends Application
 		save
 	}
 
+//Saves all settings to file.
 	def save =
 	{
 		val toWrite = new StringBuilder
-		archives.foreach((a: Archive) => toWrite.append(a.toXML))
-		groups.foreach((g: MonitoredGroup) => toWrite.append(g.toXML(g.getXML, "")))
+		archives.foreach((archive: Archive) => toWrite.append(archive.toXML))
+		groups.foreach((group: MonitoredGroup) => toWrite.append(group.toXML(group.getXML, "")))
 		Files.write(Paths.get("settings.xml"), toWrite.substring(0, toWrite.length - 2).getBytes, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING)
 	}
 
+//Load all settings from file.
 	def load =
 	{
 		val xmlblock = new XMLBlock(Files.readAllLines(Paths.get("settings.xml")).toArray[String](Array[String]()))
@@ -125,6 +160,8 @@ class Main extends Application
 				archives.add(Archive.fromXML(temp.getLine(0)))
 			index += temp.lines.length
 		}
+
+		//After load, ensure that all monitored items are displayed properly.
 		groups.refreshAll
 	}
 }

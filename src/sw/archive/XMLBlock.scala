@@ -1,5 +1,13 @@
 package sw.archive
 
+/*
+	This class, in concert with XMLLine, facilitates the parsing of settings
+	saved in XML. This custom API, as opposed to an existing third-party
+	library, was created to eliminate the need for a dependency,
+	because the functionality needed is very specific and limited, and to increase
+	the control I had over the save format.
+ */
+
 class XMLBlock(l: Array[String])
 {
 	val lines = l

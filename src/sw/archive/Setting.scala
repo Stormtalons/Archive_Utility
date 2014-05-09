@@ -9,22 +9,24 @@ import javafx.beans.value.{ObservableValue, ChangeListener}
 import javafx.scene.Node
 import java.text.SimpleDateFormat
 
+/*
+	This class consolidates all the functionality and the look-and-feel
+	I wanted to be common to all settings displayable in the UI.
+ */
+
 object Setting
 {
+//Allows both read-only and editable setting fields.
 	val LABEL_AND_FIELD = 0
 	val LABEL_ONLY = 1
 	val FIELD_ONLY = 2
-
-	object DataType
-	{
-		val NORMAL = 0
-		val DATETIME = 1
-	}
 }
 
 class Setting(display: Int, name: String, initialValue: String) extends HBox
 {
 	def this(display: Int, name: String) = this(display, name, "")
+
+//These constructors allow for custom edit handling behavior.
 	def this(display: Int, name: String, edit: => Unit) =
 	{
 		this(display, name)
@@ -36,8 +38,13 @@ class Setting(display: Int, name: String, initialValue: String) extends HBox
 		setEditHandler(edit)
 	}
 
-	var displayType: Int = display
+//The type of setting field this instance will be.
+	private val displayType: Int = display
 
+//UI tedium.
+	setSpacing(10)
+	setAlignment(Pos.CENTER_LEFT)
+	getChildren.addAll(label, valuePane)
 	private val label: Label = new Label(name)
 	private val valuePane: StackPane = new StackPane
 	valuePane.setStyle("-fx-border-width: 1px; -fx-border-color: gray; -fx-border-style: solid")
@@ -47,18 +54,14 @@ class Setting(display: Int, name: String, initialValue: String) extends HBox
 	valueLabel.setPadding(new Insets(0, 0, 0, 10))
 	private val valueField: TextField = new TextField
 	valueField.setText(if (initialValue == null) "" else initialValue.toString)
-
-	(if (displayType == Setting.FIELD_ONLY) valueLabel else valueField).setVisible(false)
-	if (displayType == Setting.LABEL_AND_FIELD) setEditHandler(toggleEdit)
-
 	valuePane.getChildren.addAll(valueLabel, valueField)
 
-	setSpacing(10)
-	setAlignment(Pos.CENTER_LEFT)
-	getChildren.addAll(label, valuePane)
 
-	def addExtras(extras: Array[_ <: Node]) = if (extras != null) for (n <- extras) getChildren.add(n)
+//Hides either the label or the text field, depending on setting.
+	(if (displayType == Setting.FIELD_ONLY) valueLabel else valueField).setVisible(false)
 
+//Only bother to set the edit handlers if the field is actually editable.
+	if (displayType == Setting.LABEL_AND_FIELD) setEditHandler(toggleEdit)
 	def setEditHandler(edit: => Unit) =
 	{
 		valuePane.setOnMouseClicked(new EventHandler[MouseEvent]{def handle(evt: MouseEvent) = if (evt.getButton == MouseButton.PRIMARY && !valueField.isVisible) edit})
@@ -66,6 +69,7 @@ class Setting(display: Int, name: String, initialValue: String) extends HBox
 		valueField.focusedProperty.addListener(new ChangeListener[java.lang.Boolean]{def changed(prop: ObservableValue[_ <: java.lang.Boolean], oldVal: java.lang.Boolean, newVal: java.lang.Boolean) = if (!newVal && valueField.isVisible) edit})
 	}
 
+//Default editing behavior.
 	def toggleEdit =
 		Main.fx(
 		{
@@ -83,6 +87,10 @@ class Setting(display: Int, name: String, initialValue: String) extends HBox
 			}
 		})
 
+//Allow a setting to contain custom controls.
+	def addExtras(extras: Array[_ <: Node]) = if (extras != null) for (n <- extras) getChildren.add(n)
+
+//Getter & setter for the actual setting value.
 	def get = if (valueLabel.isVisible) valueLabel.getText else valueField.getText
 	def set(v: String) =
 		Main.fx(

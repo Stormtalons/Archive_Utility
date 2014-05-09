@@ -8,6 +8,11 @@ import javafx.geometry.Insets
 import scala.util.Random
 import javafx.application.Platform
 
+/*
+	Represents the panel that houses the list of defined archive locations.
+	This class exists primarily to encapsulate the behavior behind archive selection.
+ */
+
 class ArchiveManager extends VBox
 {
 	setPadding(new Insets(10))
@@ -15,47 +20,66 @@ class ArchiveManager extends VBox
 
 	def count: Int = getChildren.size
 
-	def foreach(code: Archive => Unit) = for (i <- 0 to count - 1) code(get(i))
+//Custom foreach function to allow Scala-style use on JavaFX ObservableLists.
+	def foreach(doWith: Archive => Unit) = for (i <- 0 to count - 1) doWith(get(i))
 
-	def add(a: Archive) = Main.fx(getChildren.add(a))
-	def createArchive(p: Path, n: String = "New Archive") = add(new Archive(p, n))
+//Adds an archive to its list. Separated from createArchive to allow for loading from file.
+	def add(archive: Archive) = Main.fx(getChildren.add(archive))
+
+//Creates a new archive from a given file path.
+	def createArchive(path: Path, name: String = "New Archive") = add(new Archive(path, name))
+
 	def get(i: Int): Archive = if (i < count) getChildren.get(i).asInstanceOf[Archive] else null
-	def get(n: String): Archive =
+	def get(name: String): Archive =
 	{
-		foreach((a: Archive) => if (a.toString.equals(n)) return a)
+		foreach((archive: Archive) => if (archive.toString.equals(name)) return archive)
 		null
 	}
 
-	def choose(doWith: (Archive) => Unit, checkStatus: => Boolean) =
+//This routine facilitates the selection and return of an archive from its
+//list when requested by a MonitoredGroup.
+	def choose(doWith: (Archive) => Unit, shouldContinueWaiting: => Boolean) =
 	{
-		var loop = true
-		var result: Archive = null
-		foreach((a: Archive) =>
+		var waitingForSelection = true
+		var selection: Archive = null
+
+		//Provide new CSS settings to signify selection mode.
+		foreach((archive: Archive) =>
 		{
-			a.setOnMouseClicked(new EventHandler[MouseEvent]
+			archive.setOnMouseClicked(new EventHandler[MouseEvent]
 			{
 				def handle(evt: MouseEvent) =
 				{
-					result = a
-					loop = false
+					//Select an archive and stop waiting.
+					selection = archive
+					waitingForSelection = false
 				}
 			})
-			a.getStyleClass.add("archiveHover")
+			archive.getStyleClass.add("archiveHover")
 		})
+
+		//Spawn a new thread to wait for selection to end
+		//before returning the selected archive.
 		Main.run(
 		{
-			while (loop && checkStatus)
+			//Allow the selection period to be halted both by the user picking an archive
+			//or any other exit conditions defined by the calling context.
+			while (waitingForSelection && shouldContinueWaiting)
 				Thread.sleep(10)
-			foreach((a: Archive) =>
+
+			//Revert CSS styling to signify the end of selection mode.
+			foreach((archive: Archive) =>
 			{
 				Main.fx(
 				{
-					a.setOnMouseClicked(null)
-					a.getStyleClass.removeAll("archiveHover")
+					archive.setOnMouseClicked(null)
+					archive.getStyleClass.removeAll("archiveHover")
 				})
 			})
-			if (result != null)
-				doWith(result)
+
+			//Perform whatever action the calling context has designated for the selected archive.
+			if (selection != null)
+				doWith(selection)
 		})
 	}
 }
