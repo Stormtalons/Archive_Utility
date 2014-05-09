@@ -13,11 +13,14 @@ import javafx.event.{EventHandler, ActionEvent}
 
 object MonitoredItem extends Monitored
 {
-//Static copy of a file icon for use in file (as opposed to folder) tree items only.
 	val fileImg: Image = new Image(getClass.getResourceAsStream("res/file.png"))
 
-//Define how to create a MonitoredGroup item.
-	implicit def getItem(line: XMLLine): MonitoredItem = new MonitoredItem(Paths.get(line.getAttr("path")), line.getAttr("relativePath"), Main.tryGet[Boolean](line.getAttr("includeSubfolders").toBoolean, true), Main.tryGet[Boolean](line.getAttr("exclude").toBoolean, false), false, Main.tryGet[Int](line.getAttr("relativePath").length, 0) == 0)
+//Define how to create a MonitoredItem from an XMLLine.
+	implicit def getItem(line: XMLLine): MonitoredItem = new MonitoredItem(Paths.get(line.getAttr("path")),
+																			line.getAttr("relativePath"),
+																			Main.tryGet[Boolean](line.getAttr("includeSubfolders").toBoolean, true),
+																			Main.tryGet[Boolean](line.getAttr("exclude").toBoolean, false),
+																			line.getAttr("relativePath").equals("/"))
 
 //Rely on the parent definition for the rest of the operation, only redefining to supply the return type.
 //TODO: Do more research on Scala's type system to see if there is a better way to accomplish this.
@@ -43,10 +46,10 @@ class MonitoredItem(_file: Path, _relativePath: String, includeSubfolders: Boole
 //Sets the node value
 	setValue(if (displayFullPath) getFilePath else getFileName)
 
-//Definition, getters & setters for the item's relative path as shown
+//Definition & getter for the item's relative path as shown
 //in the TreeView. Used during archival for determining the destination
 //file path dynamically based on its location in the tree.
-	private val relativePath: String = _relativePath
+	private val relativePath: String = Main.formatFilePath(_relativePath)
 	def getRelativePath: String = relativePath
 	
 //Creates the node's custom graphic box to support icons & checkboxes.
@@ -73,16 +76,20 @@ class MonitoredItem(_file: Path, _relativePath: String, includeSubfolders: Boole
 	
 //A check for whether the item should be disabled by virtue of one of its parents being
 //excluded from operation. This is distinct from being the item being disabled itself.
-	def checkParentalExclusion =
+	def checkParentalExclusion: Boolean =
 	{
 		var parent: TreeItem[String] = getParent
 		while (parent != null && parent.isInstanceOf[MonitoredItem])
 		{
 			if (parent.asInstanceOf[MonitoredItem].isExcluded)
+			{
 				exclude.setDisable(true)
+				return true
+			}
 			parent = parent.getParent
 		}
 		exclude.setDisable(false)
+		false
 	}
 	graphic.getChildren.add(exclude)
 	setGraphic(graphic)

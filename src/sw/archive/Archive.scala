@@ -37,7 +37,7 @@ object Archive
 	def fromXML(l: XMLLine): Archive = new Archive(Paths.get(l.getAttr("path")), l.getAttr("name"))
 }
 
-class Archive(p: Path, n: String) extends GridPane
+class Archive(path: Path, name: String) extends GridPane
 {
 	setPadding(new Insets(10))
 	setHgap(10)
@@ -46,13 +46,14 @@ class Archive(p: Path, n: String) extends GridPane
 	getStylesheets.add("sw/archive/res/dft.css")
 
 //Definition, getter & setter for the archive name.
-	private val archiveName: Setting = new Setting(Setting.LABEL_AND_FIELD, "Name", n)
+	private val archiveName: Setting = new Setting(Setting.LABEL_AND_FIELD, "Name", name)
 	def getName: String = archiveName.get
 	def setName(name: String) = archiveName.set(name)
 	add(archiveName, 0, 0)
 
 //Definition, getter & setter for the archive directory.
-	private val archivePath: Setting = new Setting(Setting.LABEL_AND_FIELD, "Path", if (p == null) "" else Main.formatFilePath(p.toString))
+//TODO: Give the user a way to choose the archive directory.
+	private val archivePath: Setting = new Setting(Setting.LABEL_AND_FIELD, "Path", if (path == null) "" else Main.formatFilePath(path.toString))
 	archivePath.setPrefWidth(700)
 	def getArchivePath: String = archivePath.get
 	def setArchivePath(path: Path) = archivePath.set(Main.formatFilePath(path.toString))
@@ -60,7 +61,7 @@ class Archive(p: Path, n: String) extends GridPane
 	
 //Archives a single file, creating directories within its configured archive directory if needed.
 	def archive(from: MonitoredItem) =
-		if (!from.isDir && !from.isExcluded && !from.getParentalExclusion)
+		if (!from.isDir && !from.isExcluded && !from.checkParentalExclusion)
 		{
 			val archivePath = getArchivePath + Main.formatFilePath(from.getRelativePath)
 			if (!Files.exists(Paths.get(archivePath)))

@@ -2,14 +2,13 @@
 <Archive name="Test Archive 2" path="D:/Code/Java/IntelliJ/Archive Utility/TestArchiveLocation/" />
 <Archive name="ASDFQWECZXD" path="D:/Code/Java/IntelliJ/Archive Utility/TestArchiveLocation/" />
 <Archive name="Ziggs" path="D:/Code/Java/IntelliJ/Archive Utility/TestArchiveLocation/" />
-<Archive name="Monolith" path="D:/Code/Java/IntelliJ/Archive Utility/TestArchiveLocation/" />
-<MonitoredGroup name="Test Group 1" archive="Ziggs" archiveInterval="5000" lastArchived="1399618052039" >
-	<MonitoredItem path="K:/Temp/testArchive/testArchive/" relativePath="" exclude="false" includeSubfolders="true" >
-		<MonitoredItem path="K:/Temp/testArchive/testArchive/asdfasdf/" relativePath="testArchive/" exclude="false" includeSubfolders="true" >
-			<MonitoredItem path="K:/Temp/testArchive/testArchive/asdfasdf/a.txt" relativePath="testArchive/asdfasdf/" exclude="false" includeSubfolders="true" />
-			<MonitoredItem path="K:/Temp/testArchive/testArchive/asdfasdf/b.txt" relativePath="testArchive/asdfasdf/" exclude="false" includeSubfolders="true" />
+<MonitoredGroup name="Test Group 1" archive="New Archive" archiveInterval="5000" lastArchived="1399630259011" >
+	<MonitoredItem path="K:/Temp/testArchive/testArchive/" relativePath="/" exclude="false" includeSubfolders="true" >
+		<MonitoredItem path="K:/Temp/testArchive/testArchive/asdfasdf/" relativePath="/testArchive/" exclude="false" includeSubfolders="true" >
+			<MonitoredItem path="K:/Temp/testArchive/testArchive/asdfasdf/a.txt" relativePath="/testArchive/asdfasdf/" exclude="false" includeSubfolders="true" />
+			<MonitoredItem path="K:/Temp/testArchive/testArchive/asdfasdf/b.txt" relativePath="/testArchive/asdfasdf/" exclude="false" includeSubfolders="true" />
 		</MonitoredItem>
-		<MonitoredItem path="K:/Temp/testArchive/testArchive/a.txt" relativePath="testArchive/" exclude="false" includeSubfolders="true" />
-		<MonitoredItem path="K:/Temp/testArchive/testArchive/b.txt" relativePath="testArchive/" exclude="false" includeSubfolders="true" />
+		<MonitoredItem path="K:/Temp/testArchive/testArchive/a.txt" relativePath="/testArchive/" exclude="false" includeSubfolders="true" />
+		<MonitoredItem path="K:/Temp/testArchive/testArchive/b.txt" relativePath="/testArchive/" exclude="false" includeSubfolders="true" />
 	</MonitoredItem>
 </MonitoredGroup>

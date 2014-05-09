@@ -6,7 +6,7 @@ import javafx.scene.control.{Button, ScrollPane, Tab, TabPane}
 import javafx.scene.layout.{Priority, HBox, VBox}
 import javafx.scene.Scene
 import javafx.event.{ActionEvent, EventHandler}
-import java.nio.file.{StandardOpenOption, OpenOption, Files, Paths}
+import java.nio.file.{StandardOpenOption, Files, Paths}
 
 /*
 	Application entry point. This class defines and manages the UI, is responsible for
@@ -17,7 +17,8 @@ object Main extends App
 {
 	new Main().launch
 
-//Provides an easy interface for asynchronously executing any section(s) of code.
+//Provides a simple interface for asynchronously executing any section(s) of code.
+//TODO: Learn how to replace this with Akka Actors.
 	def run(code: => Unit) = new Thread(new Runnable {def run = code}).start
 
 //Provides an easy interface for modifying UI elements, ensuring that all such
@@ -142,7 +143,7 @@ class Main extends Application
 	{
 		val toWrite = new StringBuilder
 		archives.foreach((archive: Archive) => toWrite.append(archive.toXML))
-		groups.foreach((group: MonitoredGroup) => toWrite.append(group.toXML(group.getXML, "")))
+		groups.toXML(toWrite)
 		Files.write(Paths.get("settings.xml"), toWrite.substring(0, toWrite.length - 2).getBytes, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING)
 	}
 

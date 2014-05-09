@@ -27,17 +27,17 @@ class ArchiveManager extends VBox
 	def add(archive: Archive) = Main.fx(getChildren.add(archive))
 
 //Creates a new archive from a given file path.
+//TODO: Add a dialog to choose initial directory if path is null
 	def createArchive(path: Path, name: String = "New Archive") = add(new Archive(path, name))
 
 	def get(i: Int): Archive = if (i < count) getChildren.get(i).asInstanceOf[Archive] else null
 	def get(name: String): Archive =
 	{
-		foreach((archive: Archive) => if (archive.toString.equals(name)) return archive)
+		foreach((archive: Archive) => if (archive.getName.equals(name)) return archive)
 		null
 	}
 
-//This routine facilitates the selection and return of an archive from its
-//list when requested by a MonitoredGroup.
+//Facilitates the selection and return of an archive from its list when requested by a MonitoredGroup.
 	def choose(doWith: (Archive) => Unit, shouldContinueWaiting: => Boolean) =
 	{
 		var waitingForSelection = true

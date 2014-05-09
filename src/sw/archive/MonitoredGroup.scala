@@ -20,7 +20,7 @@ object MonitoredGroup extends Monitored
 	//Derives an instance of MonitoredGroup from an XML representation.
 	def fromXML(block: XMLBlock, getArchive: (String) => Archive, archiveSelectionRoutine: (MonitoredGroup) => Unit = null): MonitoredGroup =
 	{
-		//Define how to create a MonitoredGroup item, used by the parent fromXML function.
+		//Define how to create a MonitoredGroup from an XMLLine, used by the parent fromXML function.
 		implicit def getItem(line: XMLLine): MonitoredGroup =
 		{
 			val toReturn = new MonitoredGroup(archiveSelectionRoutine)
@@ -35,6 +35,7 @@ object MonitoredGroup extends Monitored
 
 class MonitoredGroup(archiveSelectionRoutine: (MonitoredGroup) => Unit) extends VBox with Monitored
 {
+	setMinHeight(400)
 	setPadding(new Insets(10))
 	setSpacing(10)
 	getStylesheets.add("sw/archive/res/dft.css")
@@ -59,7 +60,7 @@ class MonitoredGroup(archiveSelectionRoutine: (MonitoredGroup) => Unit) extends 
 //Definition, getter & setter for the group's name.
 	private val name: Setting = new Setting(Setting.LABEL_AND_FIELD, "Name", "New Group")
 	def getName: String = name.get
-	def setName(n: String) = name.set(n)
+	def setName(_name: String) = name.set(_name)
 	getChildren.add(name)
 
 //Definition, getters & setters for the group's archive settings.
@@ -70,11 +71,11 @@ class MonitoredGroup(archiveSelectionRoutine: (MonitoredGroup) => Unit) extends 
 	//	TODO: Decide which method is better, and remove the other.
 	private val archiveName: Setting = new Setting(Setting.LABEL_AND_FIELD, "Archive", archiveSelectionRoutine(MonitoredGroup.this))
 	def getArchiveName: String = archiveName.get
-	def setArchive(a: Archive) =
-		if (a != null)
+	def setArchive(_archive: Archive) =
+		if (_archive != null)
 		{
-			archive = a
-			archiveName.set(archive.toString)
+			archive = _archive
+			archiveName.set(archive.getName)
 		}
 
 	//archiveChooser's behavior is currently duplicated by clicking on the archiveName field.
@@ -153,7 +154,7 @@ class MonitoredGroup(archiveSelectionRoutine: (MonitoredGroup) => Unit) extends 
 			JOptionPane.showMessageDialog(null, "This " + (if (Files.isDirectory(path)) "folder" else "file") + " is already monitored by this group.")
 		else
 		{
-			addChild(new MonitoredItem(path, "", subfolders, false, false, true))
+			addChild(new MonitoredItem(path, "", subfolders, false, true))
 			refreshContents
 		}
 

@@ -44,7 +44,6 @@ class Setting(display: Int, name: String, initialValue: String) extends HBox
 //UI tedium.
 	setSpacing(10)
 	setAlignment(Pos.CENTER_LEFT)
-	getChildren.addAll(label, valuePane)
 	private val label: Label = new Label(name)
 	private val valuePane: StackPane = new StackPane
 	valuePane.setStyle("-fx-border-width: 1px; -fx-border-color: gray; -fx-border-style: solid")
@@ -55,7 +54,7 @@ class Setting(display: Int, name: String, initialValue: String) extends HBox
 	private val valueField: TextField = new TextField
 	valueField.setText(if (initialValue == null) "" else initialValue.toString)
 	valuePane.getChildren.addAll(valueLabel, valueField)
-
+	getChildren.addAll(label, valuePane)
 
 //Hides either the label or the text field, depending on setting.
 	(if (displayType == Setting.FIELD_ONLY) valueLabel else valueField).setVisible(false)
