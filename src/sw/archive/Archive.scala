@@ -3,6 +3,7 @@ package sw.archive
 import java.nio.file._
 import javafx.scene.layout.GridPane
 import javafx.geometry.Insets
+import javax.swing.JOptionPane
 
 /*
 	This class represents a location to archive files to, and
@@ -60,12 +61,22 @@ class Archive(path: Path, name: String) extends GridPane
 	add(archivePath, 0, 1)
 	
 //Archives a single file, creating directories within its configured archive directory if needed.
-	def archive(from: MonitoredItem) =
+	def archive(from: MonitoredItem): Unit =
 		if (!from.isDir && !from.isExcluded && !from.checkParentalExclusion)
 		{
 			val archivePath = getArchivePath + Main.formatFilePath(from.getRelativePath)
 			if (!Files.exists(Paths.get(archivePath)))
+			try
+			{
 				Files.createDirectories(Paths.get(archivePath))
+			} catch
+			{
+				case e: Exception =>
+					JOptionPane.showMessageDialog(null, "Error creating directories for archive path:\n" + getArchivePath + "\n\nAborting archive of file:\n" + from.getFilePath)
+
+					//TODO: Return false here instead, and abort archive procedure in the calling context?
+					return
+			}
 			Files.copy(from.getFile, Paths.get(archivePath + from.getFileName), StandardCopyOption.REPLACE_EXISTING)
 		}
 	

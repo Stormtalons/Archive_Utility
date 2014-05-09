@@ -1,7 +1,7 @@
 package sw.archive
 
 import java.text.SimpleDateFormat
-import javafx.scene.layout.VBox
+import javafx.scene.layout.{Priority, StackPane, VBox}
 import javafx.geometry.Insets
 import javafx.event.{ActionEvent, EventHandler}
 import javafx.scene.input.{TransferMode, DataFormat, DragEvent}
@@ -114,7 +114,7 @@ class MonitoredGroup(archiveSelectionRoutine: (MonitoredGroup) => Unit) extends 
 //End of archive settings.
 
 //TreeView & right click menu definition.
-	private val filesLabel: Label = new Label("Monitored Folders:")
+	private val filesLabel: Label = new Label("Monitored Items:")
 	getChildren.add(filesLabel)
 	private val filesTree: TreeView[String] = new TreeView(new TreeItem[String])
 	filesTree.getStylesheets.add("sw/archive/res/dft.css")
@@ -129,7 +129,12 @@ class MonitoredGroup(archiveSelectionRoutine: (MonitoredGroup) => Unit) extends 
 	removeItem.setOnAction(new EventHandler[ActionEvent]{def handle(evt: ActionEvent) = remove(filesTree.getSelectionModel.getSelectedItem.asInstanceOf[MonitoredItem])})
 	popupMenu.getItems.addAll(archiveNow, removeItem)
 	filesTree.setContextMenu(popupMenu)
-	getChildren.add(filesTree)
+	private val dropFilesHere: Label = new Label("Drop Files Here")
+	dropFilesHere.setStyle("-fx-text-fill: gray; -fx-font-size: 18pt; -fx-font-family: Verdana; -fx-font-weight: bold")
+	private val stackPane: StackPane = new StackPane
+	VBox.setVgrow(stackPane, Priority.ALWAYS)
+	stackPane.getChildren.addAll(filesTree, dropFilesHere)
+	getChildren.add(stackPane)
 //End of TreeView def.
 
 //TODO: Add a section for database connectivity info for potential activity logging.
@@ -141,6 +146,7 @@ class MonitoredGroup(archiveSelectionRoutine: (MonitoredGroup) => Unit) extends 
 	override def addChild(newChild: MonitoredItem): Boolean =
 		if (super.addChild(newChild))
 		{
+			dropFilesHere.setVisible(false)
 			Main.fx(filesTree.getRoot.getChildren.add(newChild))
 			true
 		}
@@ -162,7 +168,7 @@ class MonitoredGroup(archiveSelectionRoutine: (MonitoredGroup) => Unit) extends 
 	def remove(toRemove: MonitoredItem): Unit =
 
 		//Do not allow the removal of non-root folders, since they would be re-added upon rescanning anyway.
-		if (hasChild(toRemove, false) != null)
+		if (hasChild(toRemove, false) == null)
 			JOptionPane.showMessageDialog(null, "You tried to remove a subdirectory - please exclude this item instead of removing.")
 		else
 		{
@@ -172,6 +178,8 @@ class MonitoredGroup(archiveSelectionRoutine: (MonitoredGroup) => Unit) extends 
 			{
 				filesTree.getRoot.getChildren.clear
 				children.foreach(child => filesTree.getRoot.getChildren.add(child))
+				if (filesTree.getRoot.getChildren.size == 0)
+					dropFilesHere.setVisible(true)
 			})
 		}
 

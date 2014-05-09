@@ -80,7 +80,7 @@ class Main extends Application
 	{
 	//UI creation
 		contentPane = new VBox
-		contentPane.setStyle("-fx-font-size: 16pt")
+		contentPane.setStyle("-fx-font-size: 16pt; -fx-font-family: Verdana")
 
 	//Misc. tools group. These are designed to be temporary - any functionality
 	//desired post-development should be moved to a more natural location.
