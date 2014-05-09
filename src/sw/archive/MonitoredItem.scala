@@ -37,13 +37,14 @@ class MonitoredItem(_file: Path, _relativePath: String, includeSubfolders: Boole
 	def getFilePath: String = Main.formatFilePath(getFile.toString)
 	def getFileName: String = getFile.getFileName.toString + (if (isDir) "/" else "")
 	
-//Convenience methods
+//Convenience methods.
 	def isDir: Boolean = Files.isDirectory(getFile)
 	def exists: Boolean = Files.exists(file)
 	def isSameFile(toCheck: MonitoredItem): Boolean = if (toCheck.exists && exists) Files.isSameFile(toCheck.getFile, getFile) else toCheck.getFilePath.equals(getFilePath)
 	def isSameFile(toCheck: Path): Boolean = if (Files.exists(toCheck) && exists) Files.isSameFile(toCheck, getFile) else toCheck.toString.equals(getFilePath)
 	
-//Sets the node value
+//Sets the node value.
+//TODO: Color the text red if the file no longer exists, yellow if it isn't yet archived, and green if all is well.
 	setValue(if (displayFullPath) getFilePath else getFileName)
 
 //Definition & getter for the item's relative path as shown

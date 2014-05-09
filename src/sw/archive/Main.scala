@@ -10,7 +10,7 @@ import java.nio.file.{StandardOpenOption, Files, Paths}
 
 /*
 	Application entry point. This class defines and manages the UI, is responsible for
-	any functionality used globally, and facilitates thread management.
+	any functionality used globally, and performs all thread management.
  */
 
 object Main extends App
